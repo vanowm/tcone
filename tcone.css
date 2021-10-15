@@ -1,0 +1,27 @@
+.container
+{
+  display: inline-block;
+  vertical-align: top;
+}
+.result
+{
+  display: table;
+}
+.result > div
+{
+  display: table-row;
+}
+.result > div > span
+{
+  display: table-cell;
+}
+img
+{
+  vertical-align: top;
+}
+
+canvas
+{
+  width: 300px;
+  height: 300px;
+}
