@@ -9,7 +9,7 @@
   width: var(--size);
   height: var(--size);
   position: relative;
-  top: 1em;
+  margin-top: 2em;
 }
 .container > *
 {

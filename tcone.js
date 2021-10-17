@@ -1,6 +1,7 @@
 //jshint -W018,-W014
 (()=>
 {
+
 const elD1 = document.getElementById('d1'),
       elD2 = document.getElementById('d2'),
       elR1 = document.getElementById('r1'),
@@ -11,12 +12,12 @@ const elD1 = document.getElementById('d1'),
       elCanvas = document.getElementById("cone"),
       elCanvasR = document.getElementById("coneResult"),
       ctx = elCanvas.getContext("2d"),
-      ctxR = elCanvas.getContext("2d"),
+      ctxR = elCanvasR.getContext("2d"),
       color = getComputedStyle(elCanvas).color,
       colorErr = "red",
       colorHighlight = "green",
       colorHighlightFill = "lightgreen",
-      colorHighligthFillHover = "#c3f1c3",
+      colorHighligthFillHover = "#E0FFE0",
       fractions = (()=>
       {
         const o = { "½": "1/2", "¼": "1/4", "¾": "3/4",
@@ -65,7 +66,7 @@ elHidden.style.top = "-999999";
 //setTimeout(elD1.select.bind(elD1), 0);
 /*default*/
 let prevD1 = 2,
-    prevD2 = 4,
+    prevD2 = 3,
     prevH = 3,
     lastFocus = elD1;
 
@@ -74,7 +75,7 @@ elD2.value = prevD2;
 elH.value = prevH;
 
 let highlightHover = 0,
-    highlight = lastFocus,
+    highlighted = lastFocus,
     ctxD1, ctxD2, ctxH;
 
 function draw(e)
@@ -109,50 +110,60 @@ function draw(e)
   elH.style.width = elHidden.getBoundingClientRect().width + "px" ;
   elH.classList.toggle("error", errH);
 
-  console.log('D1: ', d1, D1);
-  console.log('D2: ', d2, D2);
-  console.log('H: ', h, H);
+  // console.log('D1: ', d1, D1);
+  // console.log('D2: ', d2, D2);
+  // console.log('H: ', h, H);
 
-
-  // Scale ratio between circles
-  var scale_ratio = (0.5 * d1) / (0.5 * (d2 - d1));
-  console.log('Scale Ratio: ' + scale_ratio);
 
   // Small tritilt sides
-  const o = 0.5 * (d2 - d1),
+  const o = 0.5 * (d1 < d2 ? d2 - d1 : d1 - d2),
         _height = Math.sqrt(h * h + o * o);
-  console.log('Side O: ' + o + ' Side A: ' + h + ' Side H: ' + _height);
+
+        // Scale ratio between circles
+  var scale_ratio = Math.abs((0.5 * d1 < d2 ? d1 : d2) / o);
+  // console.log('Scale Ratio: ' + scale_ratio);
+
+  // console.log('Side O: ' + o + ' Side A: ' + h + ' Side H: ' + _height);
 
   // Circle Radii
   const rad1 = _height * scale_ratio,
-      rad2 = _height + (_height* scale_ratio);
-  elR1.innerHTML = round(rad1);
-  elR2.innerHTML = round(rad2);
+        rad2 = _height + (_height* scale_ratio);
+  elR1.innerHTML = round(rad1) + " (" + limitFraction(rad1) + ")";
+  elR2.innerHTML = round(rad2) + " (" + limitFraction(rad2) + ")";
 
   // Arc Ratio is arc length / circumference
   var arc_ratio = (Math.PI * d1) / (Math.PI * rad1 * 2);
-  console.log('Arc Ratio: ' + arc_ratio);
+  // console.log('Arc Ratio: ' + arc_ratio);
+  // console.log("r1 length", arc_ratio * rad1 * Math.PI);
 
   // Arc Angle in degrees
   elAngle.innerHTML = round(arc_ratio * 360);
 
   const a = round(rad1),
         b = round(rad2),
-        cos = Math.cos(round(arc_ratio * 360) * (Math.PI / 180));
+        cos = Math.cos(round(arc_ratio * 360) * (Math.PI / 180)),
+        d1Ab = Math.sqrt(rad1*rad1 + rad1*rad1 - 2*rad1*rad1 * Math.cos(arc_ratio * 360) * (Math.PI / 180)),
+        d2Ab = Math.sqrt(rad2*rad2 + rad2*rad2 - 2*rad2*rad2 * Math.cos(arc_ratio * 360) * (Math.PI / 180)),
+        d1L = arc_ratio * rad1 * Math.PI,
+        d2L = arc_ratio * rad2 * Math.PI;
 
-  console.log("top", Math.sqrt(a*a + a*a - 2*a*a * cos)); //top
-  console.log("bottom", Math.sqrt(b*b + b*b - 2*b*b * cos));
-  console.log(Math.sqrt(rad1*rad1 + rad1*rad1 - 2*rad1*rad1 * Math.cos(arc_ratio * 360) * (Math.PI / 180))); //top
+  // console.log("top", Math.sqrt(a*a + a*a - 2*a*a * cos)); //top
+  // console.log("bottom", Math.sqrt(b*b + b*b - 2*b*b * cos));
+  // console.log(Math.sqrt(rad1*rad1 + rad1*rad1 - 2*rad1*rad1 * Math.cos(arc_ratio * 360) * (Math.PI / 180))); //top
 
   elCanvas.width = width;
   elCanvas.height = height;
   elCanvas.style.width = width + "px";
   elCanvas.style.height = height + "px";
+  elCanvasR.width = width;
+  elCanvasR.height = height;
+  elCanvasR.style.width = width + "px";
+  elCanvasR.style.height = height + "px";
   ctx.fillStyle = "transparent";
 //   ctx.fillStyle = "lightgreen";
    ctx.fillRect(0,0,elCanvas.width,elCanvas.width);
 
-  const max = Math.max(d1, d2, h),
+  let max = Math.max(d1, d2, h),
         arrowLineOffset = arrowClosed ? arrowSize : 0,
         lineWidthOffset = 6,
         maxWidth = elCanvas.width - lineWidthOffset - (max == h ? lineWidthOffset : 0) - arrowWidth*2 - lineWidth * (max == h ? 0.5 : 1),
@@ -271,48 +282,48 @@ function draw(e)
   //end mask
 
   ctx.lineWidth = lineWidth;
-  if (highlight)
+  if (highlighted || highlightHover)
   {
     ctx.beginPath();
     ctx.fillStyle = colorHighlightFill;
 //    ctx.strokeStyle = colorHighlightFill;
   }
-  const _highlight = highlight;
-  if (highlightHover == 1 && highlight != elD1)
+  const _highlight = highlighted;
+  if (highlightHover == 1 && highlighted != elD1)
   {
-    highlight = elD1;
+    highlighted = elD1;
     ctx.fillStyle = colorHighligthFillHover;
   }
-  else if (highlightHover == 2 && highlight != elD2)
+  else if (highlightHover == 2 && highlighted != elD2)
   {
-    highlight = elD2;
+    highlighted = elD2;
     ctx.fillStyle = colorHighligthFillHover;
   }
-  else if (highlightHover == 3 && highlight != elH)
+  else if (highlightHover == 3 && highlighted != elH)
   {
-    highlight = elH;
+    highlighted = elH;
     ctx.fillStyle = colorHighligthFillHover;
   }
 
-  if (highlight === elD1)
+  if (highlighted === elD1)
   {
     ctx.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI * 2);             //top ellipse close side
   }
-  else if (highlight === elD2)
+  else if (highlighted === elD2)
   {
     ctx.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI * 2);        //bottom outside ellipse
   }
-  else if (highlight === elH)
+  else if (highlighted === elH)
   {
     ctx.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, Math.PI, 0, Math.PI, true);        //top ellipse
     ctx.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI);        //bottom outside ellipse
   }
-  if (highlight)
+  if (highlighted || highlightHover)
   {
     ctx.fill();
 //    ctx.stroke();
   }
-  highlight = _highlight;
+  highlighted = _highlight;
   ctx.beginPath();
   ctx.setLineDash([_r2Tilt/4, _r2Tilt/3]);
   ctx.lineWidth = lineWidth/4;
@@ -341,12 +352,66 @@ function draw(e)
   ctx.strokeStyle = errD1 && showErrorSides ? colorErr : highlightHover == 1 ? colorHighlight: color;
   ctx.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI, true);       //top ellipse far side
   ctx.stroke();
- // if (d1 > d2)
-//    drawSides()
+
   ctx.beginPath();
   ctx.strokeStyle = errD2 && showErrorSides ? colorErr : highlightHover == 2 || highlightHover == 3 ? colorHighlight: color;
   ctx.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI);        //bottom ellipse close side
   ctx.stroke();
+
+
+  console.log("rad1:" + rad1, "rad2:"+rad2, "rad1Length:"+ d1L, "rad2Lenth:"+ d2L, "rad1Across:" + d1Ab, "rad2Across:" +d2Ab);
+  ctxR.fillStyle = "lightgreen";
+  ctxR.fillRect(0, 0, elCanvasR.width, elCanvasR.height);
+  max = Math.max(rad1*2, rad2*2, d1Ab, d2Ab);
+  n2p = new N2P(max,elCanvasR.width-lineWidth);
+  ctxR.lineWidth = lineWidth;
+  ctxR.fillStyle = "green";
+  const data = new Proxy({
+    x: elCanvasR.width/2,
+    y: elCanvasR.height/2,
+    rad1: Math.min(rad1, rad2),
+    rad2: Math.max(rad1, rad2),
+    r1l: Math.min(d1L, d2L),
+    r2l: Math.max(d1L, d2L),
+    d1: Math.min(d1, d2),
+    d2: Math.max(d1, d2),
+  }, {
+    get: function(target, prop, receiver)
+    {
+      if (!(prop in target))
+      {
+        const key = prop.replace(/^_/, '');
+        if (key in target)
+          target[prop] = n2p(target[key]);
+      }
+
+      return target[prop];
+    }
+  });
+console.log(data);
+  // for(let i in data)
+  // {
+  //   data["n2p_"+i] = n2p(data[i]);
+  //   console.log(data[i]);
+  // }
+//  ctxR.arc(_x, _x, n2p(rad1), 0, arc_ratio * Math.PI);
+
+// ctxR.moveTo(_x, 0);
+// ctxR.arc(_x , 0, n2p(rad1), Math.PI*2 - (Math.PI - rad1Across)/2, Math.PI + (Math.PI - rad1Across)/2);
+// ctxR.moveTo(_x, 0);
+
+ctxR.beginPath()
+ctxR.arc(data.x ,data._rad1, data._rad1, Math.PI/2 - arc_ratio * data.rad1/2, Math.PI/2 + arc_ratio * data.rad1/2);
+ctxR.stroke();
+
+ctxR.beginPath()
+ctxR.arc(data.x ,data._rad2, data._rad2, Math.PI/2 - arc_ratio * data.rad2/2, Math.PI/2 + arc_ratio * data.rad2/2);
+console.log(arc_ratio * 360, data._d1 * Math.PI, (arc_ratio * 360) * (Math.PI/180) * data._rad1, (arc_ratio * 360 * (Math.PI/180)) * data.rad2, (arc_ratio * 360 * (Math.PI/180)));
+// ctxR.lineTo(0,0);
+// ctxR.moveTo(0, _x);
+  // ctxR.arcTo(_x, n2p(rad2), _x*2, _x, n2p(rad2));
+  
+  ctxR.stroke();
 
   let r = elD1.getBoundingClientRect(),
       x = _x - r.width/2 > 0 ? _x : r.width/2;
@@ -392,9 +457,18 @@ function N2P(max, size)
 {
   return n => n * size / max;
 }
+
 function round(n)
 {
   return Math.round(n * 100) / 100;
+}
+
+function limitFraction(num, denominator)
+{
+  if (denominator === undefined)
+    denominator = 16;
+
+  return new Fraction(Math.round(new Fraction(num) * denominator), denominator).toFraction(true);
 }
 
 function onTextInput(e)
@@ -429,52 +503,58 @@ function onBlur(e)
 {
   setTimeout(() =>
   {
-    if (document.activeElement == elCanvas)
-      return;
-
     if (document.activeElement.tagName != "INPUT")
-      lastFocus.focus();
-    else
-      lastFocus = document.activeElement;
-
+    {
+      highlightHover = 0;
+      highlighted = null;
+      draw();
+    }
   });
 }
 
 function onFocus(e)
 {
-  highlight = e.target;
-  highlight.select();
+  highlighted = e.target;
+  highlighted.selectionStart = highlighted.value.length;
   draw();
 }
+
 elCanvas.addEventListener("mousemove", e =>
 {
   const x = e.x - e.target.parentNode.offsetLeft,
         y = e.y - e.target.parentNode.offsetTop;
 
-  highlightHover = ctx.isPointInPath(ctxD1, x, y) ? 1 : ctx.isPointInPath(ctxD2, x, y) ? 2 : ctx.isPointInPath(ctxH, x, y) ? 3 : 0;
-  draw();
+  const highlightHoverNew = ctxD1 && ctx.isPointInPath(ctxD1, x, y) ? 1 : ctxD2 && ctx.isPointInPath(ctxD2, x, y) ? 2 : ctxH && ctx.isPointInPath(ctxH, x, y) ? 3 : 0;
+  if (highlightHoverNew != highlightHover)
+  {
+    highlightHover = highlightHoverNew;
+    draw();
+  }
 });
 
 elCanvas.addEventListener("mousedown", e =>
 {
+  e.preventDefault();
   const x = e.x - e.target.parentNode.offsetLeft,
-        y = e.y - e.target.parentNode.offsetTop;
+        y = e.y - e.target.parentNode.offsetTop,
+        highlightedPrev = highlighted;
 
   if (ctx.isPointInPath(ctxD1, x, y))
-    highlight = elD1;
+    highlighted = elD1;
 
   if (ctx.isPointInPath(ctxD2, x, y))
-    highlight = elD2;
+    highlighted = elD2;
 
   if (ctx.isPointInPath(ctxH, x, y))
-    highlight = elH;
+    highlighted = elH;
 
   highlightHover = 0;
-  highlight.focus();
-  e.preventDefault();
+  highlighted.focus();
+  if (highlightedPrev === highlighted)
+    highlighted.select();
 });
 
-document.querySelectorAll("input").forEach(e =>
+document.querySelectorAll(".input > input").forEach(e =>
 {
   e.addEventListener("blur", onBlur);
   e.addEventListener("focus", onFocus);
@@ -484,4 +564,5 @@ document.querySelectorAll("input").forEach(e =>
   e.addEventListener("textInput", onTextInput);//mobile
 });
 lastFocus.focus();
+lastFocus.select();
 })();

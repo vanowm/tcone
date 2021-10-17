@@ -14,6 +14,11 @@
   "console": "internalConsole",
   "attach": "restart",
   "restart": true,
+//   "trace": true,
+  "sourceMap": false,
+  "runtimeArgs": [
+      "--auto-open-devtools-for-tabs"
+  ]
 },
       {
           "type": "vscode-edge-devtools.debug",
