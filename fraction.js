@@ -86,7 +86,7 @@
   }
 
   function throwInvalidParam() {
-    throw new InvalidParameter();
+    // throw new InvalidParameter();
   }
 
   function factorize(num) {
@@ -274,7 +274,8 @@
       }
 
     if (d === 0) {
-      throw new DivisionByZero();
+      return P = [];
+//      throw new DivisionByZero();
     }
 
     P["s"] = s < 0 ? -1 : 1;

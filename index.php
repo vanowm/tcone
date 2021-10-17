@@ -9,16 +9,18 @@
 </head>
 
 <body>
-  <span class="container">
-    <div>Length A: <input id="d1" value="1"></div>
-    <div>Length B: <input id="d2" value="2"></div>
-    <div>Length C: <input id="height" value="3"></div>
-    <button onclick="doCalculation()">Calculate</button>
-  </span>
-  <canvas id="cone"></canvas>
-  <canvas id="coneResult"></canvas>
-  <div><img src="https://craig-russell.co.uk/demos/cone_calculator/input_shape.png"></div>
-  <span class="container">
+  <div class="container">
+    <canvas id="cone"></canvas>
+    <span tabindex="1" onfocus="h.focus();"></span>
+    <input id="d1" tabindex="2">
+    <input id="d2" tabindex="3">
+    <input id="h" tabindex="4">
+    <span tabindex="5" onfocus="d1.focus();"></span>
+  </div>
+  <div class="container">
+    <canvas id="coneResult"></canvas>
+  </div>
+  <span>
     <div class="result">
       <div><span>Radius R1: </span><span id="r1"></span></div>
       <div><span>Radius R2: </span><span id="r2"></span></div>
@@ -27,6 +29,7 @@
   </span>
 
   <img src="https://craig-russell.co.uk/demos/cone_calculator/output_shape.png">
+<div id="hidden">elD1.value</div>  
   <script src="fraction.js"></script>
   <script src="tcone.js"></script>
 </body>

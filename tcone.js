@@ -1,30 +1,118 @@
+//jshint -W018,-W014
 (()=>
 {
 const elD1 = document.getElementById('d1'),
       elD2 = document.getElementById('d2'),
       elR1 = document.getElementById('r1'),
       elR2 = document.getElementById('r2'),
-      elHeight = document.getElementById('height'),
-      elAngle = document.getElementById('tilt'),
-      canvas = document.getElementById("cone"),
-      canvasR = document.getElementById("coneResult"),
-      ctx = canvas.getContext("2d"),
-      ctxR = canvas.getContext("2d");
+      elH = document.getElementById('h'),
+      elAngle = document.getElementById('angle'),
+      elHidden = document.getElementById('hidden'),
+      elCanvas = document.getElementById("cone"),
+      elCanvasR = document.getElementById("coneResult"),
+      ctx = elCanvas.getContext("2d"),
+      ctxR = elCanvas.getContext("2d"),
+      color = getComputedStyle(elCanvas).color,
+      colorErr = "red",
+      colorHighlight = "green",
+      colorHighlightFill = "lightgreen",
+      colorHighligthFillHover = "#c3f1c3",
+      fractions = (()=>
+      {
+        const o = { "½": "1/2", "¼": "1/4", "¾": "3/4",
+          "⅛": "1/8", "⅜": "3/8", "⅝": "5/8", "⅞": "7/8",
+          "⅐": "1/7", "⅑": "1/9", "⅒": "1/10",
+          "⅓": "1/3", "⅔": "2/3",
+          "⅕": "1/5", "⅖": "2/5", "⅗": "3/5", "⅘": "4/5",
+          "⅙": "1/6", "⅚": "5/6",
+        };
+        return Object.keys(o).reduce((o, a) =>
+        {
+          o[o[a]] = a;
+          return o;
+        }, o);
+      })(),
+      fractionGlyphs = Object.keys(fractions).filter(a=>a.length < 2).join(""),
+      fractionFilter = new RegExp("[" + fractionGlyphs + "]", "g"),
+      width = 300,
+      height = 300,
+      lineWidth = 3,
+      arrowSize = 8,
+      arrowWidth = arrowSize / 3,
+      arrowFill = 1,
+      arrowClosed = 0,
+      tilt = 10,
+      showErrorArrow = 1,
+      showErrorSides = 0;
 
-// Form submit handler
-function doCalculation(e) {
+// document.body.addEventListener("click", e =>
+// {
+//   console.log(e.target);
+//   if (e.target.tagName != "INPUT")
+//     lastFocus.focus();
+//   else
+//     lastFocus = e.target;
+// });
+for(let i = 0, s = getComputedStyle(elD1); i < s.length; i++)
+  elHidden.style[s[i]] = s[i].match(/color/i) ? "transparent" : s[s[i]];
 
+elHidden.style.width = "fit-content";
+elHidden.style.position = "absolute";
+elHidden.style.padding = "0.5em";
+elHidden.style.whiteSpace = "pre";
+elHidden.style.top = "-999999";
+
+//setTimeout(elD1.select.bind(elD1), 0);
+/*default*/
+let prevD1 = 2,
+    prevD2 = 4,
+    prevH = 3,
+    lastFocus = elD1;
+
+elD1.value = prevD1;
+elD2.value = prevD2;
+elH.value = prevH;
+
+let highlightHover = 0,
+    highlight = lastFocus,
+    ctxD1, ctxD2, ctxH;
+
+function draw(e)
+{
   // Inputs
-  const d1 = Number(elD1.value),
-        d2 = Number(elD2.value),
-        height = elHeight.value;
+  const d1Value = filter(elD1.value),
+        d2Value = filter(elD2.value),//.replace(/([^\s]+\s+[^\s]+).*/g, "$1"),
+        hValue = filter(elH.value),//.replace(/([^\s]+\s+[^\s]+).*/g, "$1"),
+        prevD1Frac = new Fraction(prevD1),
+        prevD2Frac = new Fraction(prevD2),
+        prevHFrac = new Fraction(prevH),
+        D1 = new Fraction(d1Value||0),
+        D2 = new Fraction(d2Value||0),
+        H = new Fraction(hValue||0),
+        errD1 = !D1.valueOf(),
+        errD2 = !D2.valueOf(),
+        errH = !H.valueOf(),
+        d1 = errD1 ? prevD1Frac.valueOf() : D1.valueOf(),
+        d2 = errD2 ? prevD2Frac.valueOf() : D2.valueOf(),
+        h = errH ? prevHFrac.valueOf() : H.valueOf();
 
-  if (e && (d1 == "" || d2 == "" || height == ""))
-  	return;
+//  if (e)
+ //   lastFocus = e.target;
 
-  console.log('Length A: ' + d1);
-  console.log('Length B: ' + d2);
-  console.log('Length C: ' + height);
+  elHidden.textContent = elD1.value;
+  elD1.style.width = elHidden.getBoundingClientRect().width + "px" ;
+  elD1.classList.toggle("error", errD1);
+  elHidden.textContent = elD2.value;
+  elD2.style.width = elHidden.getBoundingClientRect().width + "px" ;
+  elD2.classList.toggle("error", errD2);
+  elHidden.textContent = elH.value;
+  elH.style.width = elHidden.getBoundingClientRect().width + "px" ;
+  elH.classList.toggle("error", errH);
+
+  console.log('D1: ', d1, D1);
+  console.log('D2: ', d2, D2);
+  console.log('H: ', h, H);
+
 
   // Scale ratio between circles
   var scale_ratio = (0.5 * d1) / (0.5 * (d2 - d1));
@@ -32,12 +120,12 @@ function doCalculation(e) {
 
   // Small tritilt sides
   const o = 0.5 * (d2 - d1),
-        h = Math.sqrt(height * height + o * o);
-  console.log('Side O: ' + o + ' Side A: ' + height + ' Side H: ' + h);
+        _height = Math.sqrt(h * h + o * o);
+  console.log('Side O: ' + o + ' Side A: ' + h + ' Side H: ' + _height);
 
   // Circle Radii
-  var rad1 = h * scale_ratio,
-      rad2 = h + (h * scale_ratio);
+  const rad1 = _height * scale_ratio,
+      rad2 = _height + (_height* scale_ratio);
   elR1.innerHTML = round(rad1);
   elR2.innerHTML = round(rad2);
 
@@ -48,93 +136,61 @@ function doCalculation(e) {
   // Arc Angle in degrees
   elAngle.innerHTML = round(arc_ratio * 360);
 
-  draw(d1,d2,height, rad1);
   const a = round(rad1),
         b = round(rad2),
         cos = Math.cos(round(arc_ratio * 360) * (Math.PI / 180));
 
-  console.log(Math.sqrt(a*a + a*a - 2*a*a * cos));
-  console.log(Math.sqrt(b*b + b*b - 2*b*b * cos));
-}
+  console.log("top", Math.sqrt(a*a + a*a - 2*a*a * cos)); //top
+  console.log("bottom", Math.sqrt(b*b + b*b - 2*b*b * cos));
+  console.log(Math.sqrt(rad1*rad1 + rad1*rad1 - 2*rad1*rad1 * Math.cos(arc_ratio * 360) * (Math.PI / 180))); //top
 
-function draw(d1, d2, h)
-{
-  const noValues = !(d1+d2+h);
-  d1 = d1 || 2;
-  d2 = d2 || 4;
-  h = h || 3;
-  // if (d1 > d2)
-  //   [d1, d2] = [d2, d1];
-
-  const width = 300,
-        height = 300,
-        lineWidth = 2;
-
-  canvas.width = width;
-  canvas.height = height;
-  canvas.style.width = width + "px";
-  canvas.style.height = height + "px";
+  elCanvas.width = width;
+  elCanvas.height = height;
+  elCanvas.style.width = width + "px";
+  elCanvas.style.height = height + "px";
   ctx.fillStyle = "transparent";
-  ctx.fillStyle = "lightgreen";
-  ctx.fillRect(0,0,canvas.width,canvas.width);
+//   ctx.fillStyle = "lightgreen";
+   ctx.fillRect(0,0,elCanvas.width,elCanvas.width);
 
-  ctx.textAlign ="start";
-  ctx.font = "1em sans-serif";
-  let text = "H" + (noValues ? "" : "=" + h);
-  textSize = ctx.measureText(text);
-  fontHeight = textSize.actualBoundingBoxAscent + textSize.actualBoundingBoxDescent;
-console.log(canvas.width, textSize.width);
   const max = Math.max(d1, d2, h),
-        n2p = new N2P(max, canvas.width - lineWidth * 4),
-        tilt = 10,
-        n2pH = n2p(h),
-        offsetY = (height - n2pH)/2,
-        n2pR1 = n2p(d1/2),
-        n2pR2 = n2p(d2/2),
-        n2pR1tilt = n2p(d1/tilt),
-        n2pR2tilt = n2p(d2/tilt),
-        x = n2p(Math.max(d1, d2))/2 + lineWidth,
-        arrowBottomY = n2pH + offsetY + lineWidth * 4,
-        arrowTopY = offsetY - lineWidth * 4,
-        arrowTopLeft = x - n2pR1,
-        arrowTopRight = x + n2pR1,
-        arrowBottomLeft = x - n2pR2,
-        arrowBottomRight = x + n2pR2,
-        arrowRightX =  x + n2pR2 + lineWidth * 4,
-        arrowRightTop = offsetY + n2pR1tilt,
-        arrowRightBottom = n2pH + offsetY - n2pR2tilt,
-        arrowSize = 8,
-        arrowWidth = arrowSize / 3,
-        arrowFill = 0,
-        arrowClosed = 0,
-        arrowLineOffset = arrowClosed ? arrowSize : 0;
+        arrowLineOffset = arrowClosed ? arrowSize : 0,
+        lineWidthOffset = 6,
+        maxWidth = elCanvas.width - lineWidthOffset - (max == h ? lineWidthOffset : 0) - arrowWidth*2 - lineWidth * (max == h ? 0.5 : 1),
+        n2p = new N2P(max, maxWidth),
+        _h = n2p(h),
+        offsetY = (height - _h)/2,
+        _r1 = n2p(d1/2),
+        _r2 = n2p(d2/2),
+        _r1Tilt = n2p(d1/tilt),
+        _r2Tilt = n2p(d2/tilt),
+        _x = n2p(Math.max(d1, d2))/2 + lineWidth,
+        arrowTopY = offsetY - lineWidthOffset,
+        arrowTopLeft = _x - _r1,
+        arrowTopRight = _x + _r1,
+        arrowBottomY = _h + offsetY + lineWidthOffset,
+        arrowBottomLeft = _x - _r2,
+        arrowBottomRight = _x + _r2,
+        arrowRightX =  _x + Math.max(_r1, _r2) + lineWidthOffset,
+        arrowRightTop = offsetY + _r1Tilt,
+        arrowRightBottom = _h + offsetY - _r2Tilt;
 
-  ctx.lineWidth = lineWidth;
-  ctx.ellipse(x, n2pR1tilt + offsetY, n2pR1, n2pR1tilt, 0, 0, Math.PI * 2);           //top ellipse
-  ctx.lineTo(arrowBottomRight, n2pH - n2pR2tilt + offsetY);                            //right side
-  ctx.ellipse(x, n2pH - n2pR2tilt + offsetY, n2pR2, n2pR2tilt, 0, 0, Math.PI);        //bottom outside ellipse
-  ctx.lineTo(arrowTopLeft, n2pR1tilt + offsetY);                                       //left side
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.setLineDash([2,4]);
-  ctx.ellipse(x, n2pH - n2pR2tilt + offsetY, n2pR2 , n2pR2tilt, 0, 0, Math.PI, true); //bottom inside ellipse
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.lineWidth = lineWidth/2;
-
-  var arrowFinish = e => ctx[arrowFill ? "fill" : "stroke"]();
-  ctx.fillStyle = "black";
-  ctx.beginPath();
+  ctx.lineWidth = lineWidth/4;
+  let arrowDraw = e => 
+  {
+    ctx.strokeStyle = e && showErrorArrow? colorErr : color;
+    ctx.fillStyle = e && showErrorArrow ? colorErr : color;
+    ctx.stroke();
+    if (arrowFill)
+      ctx.fill();
+  };
   //top arrow
   //left
+  ctx.beginPath();
   ctx.moveTo(arrowTopLeft + arrowSize, arrowTopY - arrowWidth);
   ctx.lineTo(arrowTopLeft, arrowTopY);
   ctx.lineTo(arrowTopLeft + arrowSize, arrowTopY + arrowWidth);
   if (arrowClosed)
     ctx.lineTo(arrowTopLeft + arrowSize, arrowTopY - arrowWidth);
-
-  arrowFinish();
 
   //line
   ctx.moveTo(arrowTopLeft + arrowLineOffset, arrowTopY);
@@ -147,17 +203,16 @@ console.log(canvas.width, textSize.width);
   if (arrowClosed)
     ctx.lineTo(arrowTopRight - arrowSize, arrowTopY - arrowWidth);
 
-  arrowFinish();
+  arrowDraw(errD1);
 
   //bottom arrow
   //left
+  ctx.beginPath();
   ctx.moveTo(arrowBottomLeft + arrowSize, arrowBottomY - arrowWidth);
   ctx.lineTo(arrowBottomLeft, arrowBottomY);
   ctx.lineTo(arrowBottomLeft + arrowSize, arrowBottomY + arrowWidth);
   if (arrowClosed)
     ctx.lineTo(arrowBottomLeft + arrowSize, arrowBottomY - arrowWidth);
-
-  arrowFinish();
 
   //line
   ctx.moveTo(arrowBottomLeft + arrowLineOffset, arrowBottomY);
@@ -170,17 +225,16 @@ console.log(canvas.width, textSize.width);
   if (arrowClosed)
     ctx.lineTo(arrowBottomRight - arrowSize, arrowBottomY - arrowWidth);
 
-  arrowFinish();
- 
+  arrowDraw(errD2);
+
   //vertical arrow
   //top
+  ctx.beginPath();
   ctx.moveTo(arrowRightX + arrowWidth, arrowRightTop + arrowSize);
   ctx.lineTo(arrowRightX, arrowRightTop);
   ctx.lineTo(arrowRightX - arrowWidth, arrowRightTop + arrowSize);
   if (arrowClosed)
     ctx.lineTo(arrowRightX + arrowWidth, arrowRightTop + arrowSize);
-
-  arrowFinish();
 
   //line
   ctx.moveTo(arrowRightX, arrowRightTop + arrowLineOffset);
@@ -193,33 +247,241 @@ console.log(canvas.width, textSize.width);
   if (arrowClosed)
     ctx.lineTo(arrowRightX + arrowWidth, arrowRightBottom - arrowSize);
 
-  arrowFinish();
-  ctx.fillStyle = "black";
-  ctx.fillText(text, arrowRightX + lineWidth * 2,  arrowRightTop + (arrowRightBottom - arrowRightTop)/2 + fontHeight/2);
+  arrowDraw(errH);
 
-  ctx.textAlign ="center";
-  text = "D1" + (noValues ? "" : "=" + d1),
-  textSize = ctx.measureText(text),
-  fontHeight = textSize.actualBoundingBoxAscent + textSize.actualBoundingBoxDescent;
+  ctxD1 = new Path2D();
+  ctxD1.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI * 2);        //top ellipse
+  ctxD2 = new Path2D();
+  ctxD2.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI * 2);        //top ellipse
 
-  ctx.fillText(text, x, arrowTopY - lineWidth * 2);
+  //height path
+  ctxH = new Path2D();
+  ctxH.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI);        //top ellipse
+  ctxH.lineTo(arrowBottomLeft, _h - _r2Tilt + offsetY);                         //left side
+  ctxH.moveTo(_x + _r1, _r1Tilt + offsetY);
+  ctxH.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI,true);        //bottom outside ellipse
 
-  text = "D2" + (noValues ? "" : "=" + d2);
-  textSize = ctx.measureText(text);
-  fontHeight = textSize.actualBoundingBoxAscent + textSize.actualBoundingBoxDescent;
-  ctx.fillText(text, x, arrowBottomY + fontHeight + lineWidth * 2);
+  //mask
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI,true);        //top ellipse
+  ctx.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, Math.PI, 0, Math.PI, true);        //bottom outside ellipse
+  ctx.restore();
+  ctx.clip();
+  //end mask
 
+  ctx.lineWidth = lineWidth;
+  if (highlight)
+  {
+    ctx.beginPath();
+    ctx.fillStyle = colorHighlightFill;
+//    ctx.strokeStyle = colorHighlightFill;
+  }
+  const _highlight = highlight;
+  if (highlightHover == 1 && highlight != elD1)
+  {
+    highlight = elD1;
+    ctx.fillStyle = colorHighligthFillHover;
+  }
+  else if (highlightHover == 2 && highlight != elD2)
+  {
+    highlight = elD2;
+    ctx.fillStyle = colorHighligthFillHover;
+  }
+  else if (highlightHover == 3 && highlight != elH)
+  {
+    highlight = elH;
+    ctx.fillStyle = colorHighligthFillHover;
+  }
 
+  if (highlight === elD1)
+  {
+    ctx.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI * 2);             //top ellipse close side
+  }
+  else if (highlight === elD2)
+  {
+    ctx.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI * 2);        //bottom outside ellipse
+  }
+  else if (highlight === elH)
+  {
+    ctx.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, Math.PI, 0, Math.PI, true);        //top ellipse
+    ctx.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI);        //bottom outside ellipse
+  }
+  if (highlight)
+  {
+    ctx.fill();
+//    ctx.stroke();
+  }
+  highlight = _highlight;
+  ctx.beginPath();
+  ctx.setLineDash([_r2Tilt/4, _r2Tilt/3]);
+  ctx.lineWidth = lineWidth/4;
+  ctx.strokeStyle = errD2 && showErrorSides ? colorErr : highlightHover == 2 ? colorHighlight: color;
+  ctx.ellipse(_x, _h - _r2Tilt + offsetY, _r2 , _r2Tilt, 0, 0, Math.PI, true); //bottom ellipse far side
   ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.lineWidth = lineWidth * 2;
+  ctx.beginPath();
+  ctx.strokeStyle = errH && showErrorSides ? colorErr : highlightHover == 3 ? colorHighlight: color;
+  ctx.moveTo(_x + _r1, _r1Tilt + offsetY);
+  ctx.lineTo(arrowBottomRight, _h - _r2Tilt + offsetY);                        //right side
+  ctx.moveTo(_x - _r1, _r1Tilt + offsetY);
+  ctx.lineTo(arrowBottomLeft, _h - _r2Tilt + offsetY);                         //left side
+  ctx.stroke();
+
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  ctx.strokeStyle = errD1 && showErrorSides ? colorErr : highlightHover == 1 || highlightHover == 3 ? colorHighlight: color;
+  ctx.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI);             //top ellipse close side
+  ctx.stroke();
+
+  ctx.lineWidth = lineWidth*2;
+  ctx.beginPath();
+  ctx.strokeStyle = errD1 && showErrorSides ? colorErr : highlightHover == 1 ? colorHighlight: color;
+  ctx.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI, true);       //top ellipse far side
+  ctx.stroke();
+ // if (d1 > d2)
+//    drawSides()
+  ctx.beginPath();
+  ctx.strokeStyle = errD2 && showErrorSides ? colorErr : highlightHover == 2 || highlightHover == 3 ? colorHighlight: color;
+  ctx.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI);        //bottom ellipse close side
+  ctx.stroke();
+
+  let r = elD1.getBoundingClientRect(),
+      x = _x - r.width/2 > 0 ? _x : r.width/2;
+      y = arrowTopY - lineWidth * 2;
+
+  elD1.style.left = x - r.width/2 + "px";
+  elD1.style.top = y - r.height + "px";
+
+  r = elD2.getBoundingClientRect();
+  x = _x - r.width/2 > 0 ? _x : r.width/2;
+  y = arrowBottomY + r.height + lineWidth * 2;
+  elD2.style.left = x - r.width/2 + "px";
+  elD2.style.top = y - r.height + "px";
+
+  r = elH.getBoundingClientRect();
+  x = arrowRightX + lineWidth * 2;
+  y = arrowRightTop + (arrowRightBottom - arrowRightTop)/2;
+  elH.style.left = x + "px";
+  elH.style.top = y - r.height/2 + "px";
+
+  if (!errD1)
+    prevD1 = d1Value;
+  if (!errD2)
+    prevD2 = d2Value;
+  if (!errH)
+    prevH = hValue;
 }
+
+function filter(t)
+{
+  return t
+          .replace(fractionFilter, e => " " + fractions[e])
+          .replace(/[^-\d .,\\/]/g, "")
+          .replace(/-/g, ' ')
+          .replace(/\\/g, "/")
+          .replace(/([0-9]+),([0-9]+\.[0-9]+)/g, "$1$2")
+          .replace(/,/g, ".")
+          .replace(/([\s/.])\1+/g, "$1")
+          .trim();
+}
+        
 function N2P(max, size)
 {
   return n => n * size / max;
 }
-function round(n) {
+function round(n)
+{
   return Math.round(n * 100) / 100;
 }
 
-draw();
-document.querySelectorAll("input").forEach(e => e.addEventListener("input", doCalculation));
+function onTextInput(e)
+{
+  if (e.timeStamp - onTextInput.timeStamp < 10)
+    return;
+
+  onTextInput.timeStamp = e.timeStamp;
+
+  const char = e.key || e.data;
+  if (char == "Enter")
+    return e.target[(e.shiftKey ? "previous" : "next") + "ElementSibling"].focus();
+
+  if ((char == "-" && filter(e.target.value.substr(0, e.target.selectionStart) + char))
+      || (char && !char.match(new RegExp("[^\\d\\/\., " + fractionGlyphs + "]"))))
+  {
+    return true;
+  }
+
+  if (e.type == "keydown")
+  {
+    if (e.ctrlKey || char.length > 1 && char != "Processing")
+      return true;
+  }
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  return false;
+}
+
+function onBlur(e)
+{
+  setTimeout(() =>
+  {
+    if (document.activeElement == elCanvas)
+      return;
+
+    if (document.activeElement.tagName != "INPUT")
+      lastFocus.focus();
+    else
+      lastFocus = document.activeElement;
+
+  });
+}
+
+function onFocus(e)
+{
+  highlight = e.target;
+  highlight.select();
+  draw();
+}
+elCanvas.addEventListener("mousemove", e =>
+{
+  const x = e.x - e.target.parentNode.offsetLeft,
+        y = e.y - e.target.parentNode.offsetTop;
+
+  highlightHover = ctx.isPointInPath(ctxD1, x, y) ? 1 : ctx.isPointInPath(ctxD2, x, y) ? 2 : ctx.isPointInPath(ctxH, x, y) ? 3 : 0;
+  draw();
+});
+
+elCanvas.addEventListener("mousedown", e =>
+{
+  const x = e.x - e.target.parentNode.offsetLeft,
+        y = e.y - e.target.parentNode.offsetTop;
+
+  if (ctx.isPointInPath(ctxD1, x, y))
+    highlight = elD1;
+
+  if (ctx.isPointInPath(ctxD2, x, y))
+    highlight = elD2;
+
+  if (ctx.isPointInPath(ctxH, x, y))
+    highlight = elH;
+
+  highlightHover = 0;
+  highlight.focus();
+  e.preventDefault();
+});
+
+document.querySelectorAll("input").forEach(e =>
+{
+  e.addEventListener("blur", onBlur);
+  e.addEventListener("focus", onFocus);
+  e.addEventListener("input", draw);
+  e.addEventListener("keydown", onTextInput);
+  e.addEventListener("beforeinput", onTextInput);//mobile
+  e.addEventListener("textInput", onTextInput);//mobile
+});
+lastFocus.focus();
 })();
