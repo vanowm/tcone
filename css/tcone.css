@@ -1,0 +1,144 @@
+:root
+{
+  --size: 300px;
+  color-scheme:  light dark;
+  /* background-color: green; */
+}
+:root[theme="dark"]
+{
+  color-scheme: dark;
+}
+:root[theme="light"]
+{
+  color-scheme: light;
+}
+.content
+{
+  display: flex;
+  flex-wrap: wrap;
+}
+.content > *
+{
+  margin: 1.5em;
+}
+div.res > img
+{
+  position: relative;
+  top: -99999vh;
+}
+div.res
+{
+  background-image: url("output_shape_light.png");
+  background-size:     cover;                      /* <------ */
+  background-repeat:   no-repeat;
+  background-position: left;              /* optional, center the image */
+  position: relative;
+}
+@media (prefers-color-scheme: dark) {
+  div.res
+  {
+    background-image: url("output_shape_dark.png");
+  }
+}
+:root[theme="dark"] div.res
+{
+  background-image: url("output_shape_dark.png");
+}
+:root[theme="light"] div.res
+{
+  background-image: url("output_shape_light.png");
+}
+.container
+{
+  width: var(--size);
+  height: var(--size);
+  position: relative;
+  margin-top: 0.5em;
+  display: inline-block;
+  margin-bottom: 2em;
+}
+.container > *:not(canvass)
+{
+  position: absolute;
+  vertical-align: middle;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+input
+{
+  z-index: 1;
+  /* border: 0; */
+}
+.result
+{
+  display: table;
+}
+.result > div
+{
+  display: table-row;
+}
+.result > div > span
+{
+  display: table-cell;
+}
+img
+{
+  vertical-align: top;
+}
+
+canvas
+{
+  width: var(--size);
+  height: var(--size);
+}
+
+.error
+{
+  color: red;
+  border-color: red;
+  outline-color: red;
+  border-style: solid;
+}
+
+.result div[id]
+{
+  padding-left: 0.5em;
+}
+
+.result > div > span
+{
+  padding-left: 0.5em;
+  font-weight: bold;
+  /* text-align: end; */
+}
+.result > div > span:last-child
+{
+  font-weight: normal;
+  /* text-align: end; */
+}
+/* .result > div > span:first-child
+{
+  text-align: end;
+} */
+
+.result sup,
+.result sub
+{
+  font-size: 0.6em;
+}
+
+#hidden
+{
+  width: -moz-fit-content !important;
+  width: fit-content !important;
+  position: absolute !important;
+  padding: 0.5em !important;
+  white-space: pre !important;
+  top: -999999vh !important;
+}
+
+#dxf
+{
+  position: absolute;
+}
