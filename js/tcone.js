@@ -1,7 +1,7 @@
 //jshint -W018,-W014
-(()=>
+window.addEventListener("DOMContentLoaded", e =>
 {
- localStorage.removeItem("data");
+ localStorage.removeItem("settings");
 const elD1 = document.getElementById('d1'),
       elD2 = document.getElementById('d2'),
       elR1 = document.getElementById('r1'),
@@ -16,7 +16,7 @@ const elD1 = document.getElementById('d1'),
       elCanvasResult = document.getElementById("coneResult"),
       ctxCone = elCanvasCone.getContext("2d"),
       ctxResult = elCanvasResult.getContext("2d"),
-      settings = new Proxy(JSON.parse(localStorage.getItem("settings")) || {},
+      settings = new Proxy(JSON.parse(localStorage.getItem("tconeData")) || {},
       {
         get: function(target, name)
         {
@@ -49,16 +49,16 @@ const elD1 = document.getElementById('d1'),
             if (!(i in this.default))
               delete target[i];
 
-          localStorage.setItem("settings", JSON.stringify(target));
+          localStorage.setItem("tconeData", JSON.stringify(target));
           if (name == "d")
           {
             color.darkMode = value == 2 ? window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches : value;
           }
         },
         default: {
-          t:6,
-          b:8,
-          h:10,
+          t:"6",
+          b:"8",
+          h:"10",
           d:2
         }
       }),
@@ -505,7 +505,7 @@ function draw(e)
   ctxResult.stroke();
   ctxResult.beginPath();
   ctxResult.arc(data.x,  data.y, 2, 0, Math.PI*2);
-  ctxResult.fillStyle = "red"
+  ctxResult.fillStyle = "red";
   ctxResult.fill();
   // ctxResult.beginPath();
   // ctxResult.arc(data.x,  data.y + (4 * Math.sin(data.angleRad/2) * (Math.pow(data._r2, 3) - Math.pow(data._r1, 3)))/ (3*data.angleRad*(data._r2*data._r2 - data._r1*data._r1)) , 3, 0, Math.PI*2);
@@ -622,12 +622,13 @@ function fractionFormat(f)
 {
   return f.replace(/^([0-9]+)\/([0-9]+)|([0-9]+)(\s+([0-9]+)\/([0-9]+))|([0-9]+)/, (...args) => 
   {
-    let r = args[3] || args[7] || "0";
+    let r = args[3] || args[7] || "";
     if (args[1] || args[5])
-      r += (r !== "" ? " " : "") + `<sup>${args[1] || args[5]}</sup>&frasl;<sub>${args[2] || args[6]}</sub>`;
+      r += (r !== "" ? " " : "") + `${args[1] || args[5]}&frasl;${args[2] || args[6]}`;
+      // r += (r !== "" ? " " : "") + `<sup>${args[1] || args[5]}</sup>&frasl;<sub>${args[2] || args[6]}</sub>`;
     return r;
   });
-  // return f.replace(/^([0-9]+)((\s)([0-9]+)(\/)([0-9]+))?/, '$1$3$4⁄$6');
+  // return f.replace(/^([0-9]+)\/([0-9]+)|([0-9]+)(\s+([0-9]+)\/([0-9]+))|([0-9]+)/, '$3$7 $1$5⁄$2$6');
 }
 
 function setTheme(theme)
@@ -753,6 +754,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e =
   color.darkMode = e.matches;
   draw(true);
 });
-
-setTimeout(prevFocus.focus.bind(prevFocus));
-})();
+// setTimeout(prevFocus.focus.bind(prevFocus));
+onFocus({target:prevFocus});
+document.documentElement.classList.add("inited");
+});

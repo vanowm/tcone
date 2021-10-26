@@ -13,39 +13,39 @@
   <link rel="manifest" href="/favicon-site.webmanifest">
   <link rel="mask-icon" href="/favicon-safari-pinned-tab.svg" color="#5bbad5">
 
-<title>Truncated Cone Calculator</title>
+  <title>Truncated Cone Calculator</title>
   <link rel="stylesheet" media="screen" href="<?=getfile("css/tcone.css");?>">
 </head>
 
 <body>
   <div class="content">
     <div>
-  <div class="container input">
-    <canvas id="cone"></canvas>
-    <span tabindex="0" onfocus="h.focus();"></span>
-    <input id="d1" title="Top Diameter">
-    <input id="d2" title="Bottom Diameter">
-    <input id="h" title="Height">
-    <span tabindex="0" onfocus="d1.focus();"></span>
+      <div class="container input">
+        <canvas id="cone"></canvas>
+        <span tabindex="0" onfocus="h.focus();"></span>
+        <input id="d1" title="Top Diameter" type="tel">
+        <input id="d2" title="Bottom Diameter" type="tel">
+        <input id="h" title="Height" type="tel">
+        <span tabindex="0" onfocus="d1.focus();"></span>
+      </div>
+      <div class="result">
+        <div id="r1">Radius R1:<span></span><span></span></div>
+        <div id="r2">Radius R2:<span></span><span></span></div>
+        <div id="angle">Arc Angle:<span></span><span></span></div>
+        <div id="l1">Length L1:<span></span><span></span></div>
+        <div id="l2">Length L2:<span></span><span></span></div>
+        <div id="l3">Length L3:<span></span><span></span></div>
+        <a id="dxf">Download DXF</a>
+      </div>
+    </div>
+    <div class="res">
+      <img src="css/output_shape_dark.png" alt="result">
+    </div>
+    <div class="container">
+      <canvas id="coneResult"></canvas>
+    </div>
   </div>
-  <div class="result">
-    <div id="r1">Radius R1:<span></span><span></span></div>
-    <div id="r2">Radius R2:<span></span><span></span></div>
-    <div id="angle">Arc Angle:<span></span><span></span></div>
-    <div id="l1">Length L1:<span></span><span></span></div>
-    <div id="l2">Length L2:<span></span><span></span></div>
-    <div id="l3">Length L3:<span></span><span></span></div>
-    <a id="dxf">Download DXF</a>
-  </div>
-</div>
-  <div class="container">
-    <canvas id="coneResult"></canvas>
-  </div>
-  <div class="res">
-    <img src="output_shape_dark.png" alt="result">
-  </div>
-</div>
-  <div id="hidden">elD1.value</div>  
+  <div id="hidden">elD1.value</div>
   <script src="<?=getfile("js/fraction.js");?>"></script>
   <script src="<?=getfile("js/dxf.js");?>"></script>
   <script src="<?=getfile("js/tcone.js");?>"></script>

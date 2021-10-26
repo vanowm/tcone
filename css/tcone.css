@@ -3,6 +3,7 @@
   --size: 300px;
   color-scheme:  light dark;
   /* background-color: green; */
+  font-family: 'Segoe UI', Arial, Tahoma, Geneva, Verdana, sans-serif;
 }
 :root[theme="dark"]
 {
@@ -11,6 +12,15 @@
 :root[theme="light"]
 {
   color-scheme: light;
+}
+body
+{
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+:root:not(.inited) > body
+{
+  opacity: 0;
 }
 .content
 {
@@ -29,9 +39,9 @@ div.res > img
 div.res
 {
   background-image: url("output_shape_light.png");
-  background-size:     cover;                      /* <------ */
+  /* background-size:     cover; */                      /* <------ */
   background-repeat:   no-repeat;
-  background-position: left;              /* optional, center the image */
+  background-position: left top;              /* optional, center the image */
   position: relative;
 }
 @media (prefers-color-scheme: dark) {
@@ -62,13 +72,18 @@ div.res
   position: absolute;
   vertical-align: middle;
   text-align: center;
-  width: 100%;
+  /* width: 100%; */
   box-sizing: border-box;
+}
+input:not([style]) /* prevent flickering on refresh */
+{
+  top: -99999vh;
 }
 input
 {
   z-index: 1;
   /* border: 0; */
+  width: 2em;
 }
 .result
 {
