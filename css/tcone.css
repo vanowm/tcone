@@ -1,159 +1,175 @@
-:root
-{
-  --size: 300px;
-  color-scheme:  light dark;
-  /* background-color: green; */
-  font-family: 'Segoe UI', Arial, Tahoma, Geneva, Verdana, sans-serif;
-}
-:root[theme="dark"]
-{
-  color-scheme: dark;
-}
-:root[theme="light"]
-{
-  color-scheme: light;
-}
-body
-{
-  opacity: 1;
-  transition: opacity 0.3s;
-}
-:root:not(.inited) > body
-{
-  opacity: 0;
-}
-.content
-{
-  display: flex;
-  flex-wrap: wrap;
-}
-.content > *
-{
-  margin: 1.5em;
-}
-div.res > img
-{
-  position: relative;
-  top: -99999vh;
-}
-div.res
-{
-  background-image: url("output_shape_light.png");
-  /* background-size:     cover; */                      /* <------ */
-  background-repeat:   no-repeat;
-  background-position: left top;              /* optional, center the image */
-  position: relative;
-}
-@media (prefers-color-scheme: dark) {
-  div.res
-  {
-    background-image: url("output_shape_dark.png");
-  }
-}
-:root[theme="dark"] div.res
-{
-  background-image: url("output_shape_dark.png");
-}
-:root[theme="light"] div.res
-{
-  background-image: url("output_shape_light.png");
-}
-.container
-{
-  width: var(--size);
-  height: var(--size);
-  position: relative;
-  margin-top: 0.5em;
-  display: inline-block;
-  margin-bottom: 2em;
-}
-.container > *:not(canvass)
-{
-  position: absolute;
-  vertical-align: middle;
-  text-align: center;
-  /* width: 100%; */
-  box-sizing: border-box;
-}
-input:not([style]) /* prevent flickering on refresh */
-{
-  top: -99999vh;
-}
-input
-{
-  z-index: 1;
-  /* border: 0; */
-  width: 2em;
-}
-.result
-{
-  display: table;
-}
-.result > div
-{
-  display: table-row;
-}
-.result > div > span
-{
-  display: table-cell;
-}
-img
-{
-  vertical-align: top;
+:root {
+    --size: 300px;
+    --labelColor: #0047B3;
+    color-scheme: light dark;
+    /* background-color: green; */
+    font-family: 'Segoe UI', Arial, Tahoma, Geneva, Verdana, sans-serif;
 }
 
-canvas
-{
-  width: var(--size);
-  height: var(--size);
+:root[theme="dark"] {
+    color-scheme: dark;
+    --labelColor: #67A4FF;
 }
 
-.error
-{
-  color: red;
-  border-color: red;
-  outline-color: red;
-  border-style: solid;
+:root[theme="light"] {
+    color-scheme: light;
 }
 
-.result div[id]
-{
-  padding-left: 0.5em;
+body {
+    opacity: 1;
+    transition: opacity 0.3s;
 }
 
-.result > div > span
-{
-  padding-left: 0.5em;
-  font-weight: bold;
-  /* text-align: end; */
+:root:not(.inited)>body {
+    opacity: 0;
 }
-.result > div > span:last-child
-{
-  font-weight: normal;
-  /* text-align: end; */
+
+.content {
+    display: flex;
+    flex-wrap: wrap;
 }
+
+.content>* {
+    margin: 1.5em 0.5em;
+}
+
+.container {
+    width: var(--size);
+    height: var(--size);
+    position: relative;
+    margin-top: 0.5em;
+    display: inline-block;
+    margin-bottom: 2em;
+}
+
+.container>*:not(canvass) {
+    position: absolute;
+    vertical-align: middle;
+    text-align: center;
+    /* width: 100%; */
+    box-sizing: border-box;
+}
+
+input:not([style])
+
+/* prevent flickering on refresh */
+    {
+    top: -99999vh;
+}
+
+input {
+    z-index: 1;
+    /* border: 0; */
+    width: 2em;
+}
+
+.result {
+    display: table;
+}
+
+.result>div {
+    display: table-row;
+}
+
+.result>div>span {
+    display: table-cell;
+}
+
+img {
+    vertical-align: top;
+}
+
+canvas {
+    width: var(--size);
+    height: var(--size);
+}
+
+.error {
+    color: red;
+    border-color: red;
+    outline-color: red;
+    border-style: solid;
+}
+
+.result div[id] {
+    padding-left: 0.5em;
+}
+
+.result>div>span {
+    padding-left: 0.5em;
+    font-weight: bold;
+     text-align: start;
+}
+
+.result>div>span:last-child {
+    font-weight: normal;
+    /* text-align: end; */
+}
+
 /* .result > div > span:first-child
 {
   text-align: end;
 } */
 
 .result sup,
-.result sub
-{
-  font-size: 0.6em;
+.result sub {
+    font-size: 0.6em;
 }
 
-#hidden
-{
-  width: -moz-fit-content !important;
-  width: fit-content !important;
-  position: absolute !important;
-  padding: 0.5em !important;
-  white-space: pre !important;
-  top: -999999vh !important;
+#hidden {
+    width: -moz-fit-content !important;
+    width: fit-content !important;
+    position: absolute !important;
+    white-space: pre !important;
+    top: -999999vh !important;
 }
 
-#dxf
+#dxf {
+    position: absolute;
+}
+
+#reset {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+#reset:hover:after {
+    opacity: 1;
+}
+
+#reset:after {
+    opacity: 0.5;
+    margin: 0.5em;
+    cursor: pointer;
+    font-family: monospace;
+    height: 1em;
+    width: 1em;
+    border-radius: 5px;
+    position: relative;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    content: "✕";
+    /* use the hex value here... */
+    text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --labelColor: #67A4FF;
+    }
+}
+
+.result > div
 {
-  position: absolute;
+    text-align: end;
+}
+.result label {
+    color: var(--labelColor);
+}
+
+.result label {
+    color: var(--labelColor);
 }
