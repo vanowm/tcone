@@ -1,6 +1,13 @@
 :root {
-    --size: 300px;
-    --labelColor: #0047B3;
+    --size: 350px;
+    --labelColor: #0056d6; /* any */
+    --arrowHeadSize:8; /* number */
+    --arrowHeadWidth:; /* number */
+    --arrowHeadClosed:false; /* true/false */
+    --arrowLineWidth:; /* number */
+    --arrowFill:true; /* true/false */
+    --arrowColor:; /* any */
+    --arrowColorError:; /* any */
     color-scheme: light dark;
     /* background-color: green; */
     font-family: 'Segoe UI', Arial, Tahoma, Geneva, Verdana, sans-serif;
@@ -17,7 +24,7 @@
 
 body {
     opacity: 1;
-    transition: opacity 0.3s;
+    transition: opacity 0.1s;
 }
 
 :root:not(.inited)>body {
@@ -63,20 +70,16 @@ input {
     width: 2em;
 }
 
-.result {
+.table {
     display: table;
 }
 
-.result>div {
+.result .table > div{
     display: table-row;
 }
 
-.result>div>span {
+.result .table > div > span {
     display: table-cell;
-}
-
-img {
-    vertical-align: top;
 }
 
 canvas {
@@ -95,13 +98,13 @@ canvas {
     padding-left: 0.5em;
 }
 
-.result>div>span {
+.result .table > div > span {
     padding-left: 0.5em;
     font-weight: bold;
      text-align: start;
 }
 
-.result>div>span:last-child {
+.result .table > div > span:last-child {
     font-weight: normal;
     /* text-align: end; */
 }
@@ -117,44 +120,45 @@ canvas {
 }
 
 #hidden {
-    width: -moz-fit-content !important;
-    width: fit-content !important;
+    width: min-content !important;
+    box-sizing: border-box !important;
+    display: inline-block !important;
     position: absolute !important;
     white-space: pre !important;
     top: -999999vh !important;
-}
-
-#dxf {
-    position: absolute;
 }
 
 #reset {
     position: absolute;
     right: 0;
     top: 0;
-}
-
-#reset:hover:after {
-    opacity: 1;
-}
-
-#reset:after {
     opacity: 0.5;
-    margin: 0.5em;
     cursor: pointer;
+    margin: 0.5em;
     font-family: monospace;
     height: 1em;
     width: 1em;
     border-radius: 5px;
+    text-align: center;
+}
+
+#reset:hover {
+    opacity: 1;
+}
+
+#reset:after {
     position: relative;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
     content: "✕";
-    /* use the hex value here... */
-    text-align: center;
 }
+
+/* a:link
+{
+    text-decoration: none;
+} */
 
 @media (prefers-color-scheme: dark) {
     :root {
@@ -162,14 +166,62 @@ canvas {
     }
 }
 
-.result > div
+.result .table
 {
     text-align: end;
 }
-.result label {
+.result label > label {
     color: var(--labelColor);
 }
 
-.result label {
-    color: var(--labelColor);
+#coneResult2
+{
+    --width:320px;
+    --height:400px;
+    font-size: 1.0em;
+    /* font-weight: bold; */
+}
+
+.download
+{
+    margin: 0.5em 0;
+}
+
+.download > *:not([href])
+{
+    /* display: none; */
+    opacity: 0.3;
+}
+.download > *
+{
+    text-decoration: none;
+    vertical-align: bottom;
+}
+.download > *
+{
+    margin-left: 0.2em;
+}
+
+.download > *::after
+{
+    height: 32px;
+    width: 24px;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    vertical-align: bottom;
+}
+
+.download > #dxf::after
+{
+    content: url("../?dxf_white_black");
+}
+
+.download > #pdf::after
+{
+    content: url("../?pdf_white_black");
+}
+.download > #png::after
+{
+    content: url("../?png_white_black");
 }

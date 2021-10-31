@@ -14,45 +14,34 @@ function init(e)
                 diameter2 = Math.max(d1, d2),
                 radius1 = diameter1 / 2 /* top radius */ ,
                 radius2 = diameter2 / 2 /* bottom radius */ ,
+                circumference1 = radius1 * Math.PI * 2,
+                circumference2 = radius2 * Math.PI * 2,
                 dif = diameter2 - diameter1,
-                hT =
-                (h * diameter2) /
-                (dif ?
-                    dif :
-                    0) /* triangle height (center of radius to bottom of the cone) */ ,
-                b =
-                radius2 - radius1 ?
-                radius2 - radius1 :
-                0 /* difference between top and bottom */ ,
-                rH = Math.sqrt(
-                    h * h + b * b
-                ) /* radius for cone height (cone slope length) */ ,
-                r2 = Math.sqrt(
-                    hT * hT + radius2 * radius2
-                ) /* pattern outer radius */ ,
+                hT = (h * diameter2) / (dif ? dif : 0) /* triangle height (center of radius to bottom of the cone) */ ,
+                b = radius2 - radius1 ? radius2 - radius1 : 0 /* difference between top and bottom */ ,
+                rH = Math.sqrt(h * h + b * b) /* radius for cone height (cone slope length) */ ,
+                r2 = Math.sqrt(hT * hT + radius2 * radius2) /* pattern outer radius */ ,
                 r1 = r2 - rH /* pattern inner radius */ ,
                 c = Math.PI * diameter2 /* cone circumference */ ,
                 cT = Math.PI * 2 * r2 /* total pattern circumference */ ,
-                angleRad = c / r2 /* angle in radians */ ,
-                angleDeg = (360 * c) / cT /* angle in degres */ ,
+                angleRad = d1 == d2 ? Math.PI : c / r2 /* angle in radians */ ,
+                angleDeg = angleRad * 180 / Math.PI /*(360 * c) / cT*/ /* angle in degres */ ,
                 r1Length = angleRad * r1 /* length of top arc */ ,
                 r2Length = angleRad * r2 /* length of bottom arc */ ,
-                arcEnd = (c1, c2, radius) => [
+                arcEnd = (c1, c2, radius, angleRad, bot) => !isFinite(radius) || !radius ? [
+                    c1, c2 + (bot ? h : 0), circumference2, c2 + (bot ? h : 0)
+                ] : [
                     /* coordinates of an arc */
                     c1 + Math.cos(Math.PI / 2 - angleRad / 2) * radius /* x1 */ ,
                     c2 + Math.sin(Math.PI / 2 - angleRad / 2) * radius /* y1 */ ,
                     c1 + Math.cos(Math.PI / 2 + angleRad / 2) * radius /* x2 */ ,
                     c2 + Math.sin(Math.PI / 2 + angleRad / 2) * radius /* y2 */ ,
                 ],
-                coord2length = (x1, y1, x2, y2) =>
-                Math.sqrt(
-                    (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)
-                ) /* distance between arc ends */ ,
                 r1Ends = arcEnd(0, 0, r1, angleRad),
-                r2Ends = arcEnd(0, 0, r2, angleRad),
-                l1 = coord2length(...r1Ends),
-                l2 = coord2length(...r2Ends),
-                l3 = coord2length(r1Ends[0], r1Ends[1], r2Ends[2], r2Ends[3]),
+                r2Ends = arcEnd(0, 0, r2, angleRad, true),
+                l1 = lineLength(...r1Ends),
+                l2 = lineLength(...r2Ends),
+                l3 = lineLength(r1Ends[0], r1Ends[1], r2Ends[2], r2Ends[3]),
                 data = {
                     x: canvas.width / 2,
                     y: 0,
@@ -60,24 +49,28 @@ function init(e)
                     radius2,
                     diameter1,
                     diameter2,
+                    circumference1,
+                    circumference2,
                     r1,
                     r2,
-                    angleRad,
-                    angleDeg,
+                    angleRad: d1 == d2 ? 0 : angleRad,
+                    angleDeg: d1 == d2 ? 0 : angleDeg,
                     hT,
                     b,
                     h,
                     rH,
-                    r1l: r1Length,
-                    r2l: r2Length,
+                    r1Ends,
+                    r2Ends,
+                    r1Length,
+                    r2Length,
                     l1,
                     l2,
                     l3,
                     arcEnd,
-                    coord2length,
+                    lineLength,
                 },
                 handler = {
-                    /** using proxy object to convert any variables that start with _ to percentatge value 
+                    /** using proxy object to convert any variables that start with _ to percentatge value
                                                 and $ = round to 2 decimal places
                                             */
                     get: function (target, prop)
@@ -109,9 +102,10 @@ function init(e)
                         return target[prop];
                     },
                     n2p: new N2P(
+                        d1 == d2 ? Math.max(d1 / 2 * Math.PI * 2, h) :
                         Math.max(
                             r2,
-                            r2Ends[1] < 0 ? r2 * 2 : coord2length(...r2Ends),
+                            r2Ends[1] < 0 ? r2 * 2 : lineLength(...r2Ends),
                             r2 - r2Ends[1]
                         ),
                         Math.max(canvas.width, canvas.height) - _lineWidth * 2
@@ -122,17 +116,16 @@ function init(e)
 
         data.y = Math.min(
             data.arcEnd(0, 0, data._r1, data.angleRad)[1],
-            data.arcEnd(0, 0, data._r2, data.angleRad)[1]
+            data.arcEnd(0, 0, data._r2, data.angleRad, true)[1]
         );
         if (data.y < 0) data.y = Math.abs(data.y) + _lineWidth;
         else data.y = _lineWidth;
 
         const topArcEnds = data.arcEnd(data.x, data.y, data._r1, data.angleRad),
-            bottomArcEnds = data.arcEnd(data.x, data.y, data._r2, data.angleRad);
+            bottomArcEnds = data.arcEnd(data.x, data.y, data._r2, data.angleRad, true);
 
         data.topArcEnds = topArcEnds;
         data.bottomArcEnds = bottomArcEnds;
-
         const ctx = canvas.getContext("2d");
         // ctx.fillStyle = color.fill;
         ctx.save();
@@ -143,49 +136,58 @@ function init(e)
         ctx.fillStyle = fillColor || color.fill;
 
         ctx.beginPath();
-        ctx.arc(
-            data.x,
-            data.y,
-            data._r1,
-            Math.PI / 2 - data.angleRad / 2,
-            Math.PI / 2 + data.angleRad / 2
-        );
-        ctx.stroke();
+        if (isFinite(data.r1))
+        {
+            ctx.arc(
+                data.x,
+                data.y,
+                data._r1,
+                Math.PI / 2 - data.angleRad / 2,
+                Math.PI / 2 + data.angleRad / 2
+            );
+            ctx.stroke();
+            ctx.arc(
+                data.x,
+                data.y,
+                data._r2,
+                Math.PI / 2 + data.angleRad / 2,
+                Math.PI / 2 - data.angleRad / 2,
+                true
+            );
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.setLineDash([5, 8]);
+            ctx.lineWidth = _lineWidth / 4;
+            ctx.moveTo(topArcEnds[2], topArcEnds[1]);
+            ctx.lineTo(data.x, data.y);
+            ctx.lineTo(topArcEnds[0], topArcEnds[1]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.lineWidth = _lineWidth;
+            ctx.moveTo(topArcEnds[0], topArcEnds[1]);
+            ctx.lineTo(...bottomArcEnds);
+            ctx.moveTo(topArcEnds[2], topArcEnds[1]);
+            ctx.lineTo(bottomArcEnds[2], bottomArcEnds[1]);
+            ctx.stroke();
+            ctx.lineWidth = _lineWidth / 4;
+            ctx.beginPath();
+            ctx.lineTo(bottomArcEnds[0], bottomArcEnds[1]);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(data.x, data.y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = "red";
+            ctx.fill();
+        }
+        else
+        {
+            ctx.rect(data.topArcEnds[0] - data.x + 1, data.topArcEnds[1] - data.y + 1, data._circumference1, data._h);
+            ctx.fill();
+            ctx.stroke();
+        }
 
-        ctx.arc(
-            data.x,
-            data.y,
-            data._r2,
-            Math.PI / 2 + data.angleRad / 2,
-            Math.PI / 2 - data.angleRad / 2,
-            true
-        );
-        ctx.fill();
 
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.setLineDash([5, 8]);
-        ctx.lineWidth = _lineWidth / 4;
-        ctx.moveTo(topArcEnds[2], topArcEnds[1]);
-        ctx.lineTo(data.x, data.y);
-        ctx.lineTo(topArcEnds[0], topArcEnds[1]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.lineWidth = _lineWidth;
-        ctx.moveTo(topArcEnds[0], topArcEnds[1]);
-        ctx.lineTo(...bottomArcEnds);
-        ctx.moveTo(topArcEnds[2], topArcEnds[1]);
-        ctx.lineTo(bottomArcEnds[2], bottomArcEnds[1]);
-        ctx.stroke();
-        ctx.lineWidth = _lineWidth / 4;
-        ctx.beginPath();
-        ctx.lineTo(bottomArcEnds[0], bottomArcEnds[1]);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(data.x, data.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = "red";
-        ctx.fill();
         // ctx.beginPath();
         // ctx.arc(data.x,  data.y + (4 * Math.sin(data.angleRad/2) * (Math.pow(data._r2, 3) - Math.pow(data._r1, 3)))/ (3*data.angleRad*(data._r2*data._r2 - data._r1*data._r1)) , 3, 0, Math.PI*2);
         // ctx.fillStyle = "red"
@@ -207,7 +209,8 @@ function init(e)
         elCanvasResult = document.getElementById("coneResult"),
         elCanvasResult2 = document.getElementById("coneResult2"),
         ctxCone = elCanvasCone.getContext("2d"),
-        settings = new Proxy(JSON.parse(localStorage.getItem("tconeData")) || {},
+        settings = new Proxy(JSON.parse(localStorage.getItem("tconeData")) ||
+        {},
         {
             get: function (target, name)
             {
@@ -319,14 +322,10 @@ function init(e)
         .filter(a => a.length < 2)
         .join(""),
         fractionFilter = new RegExp("[" + fractionGlyphs + "]", "g"),
-        canvasWidth = 300,
-        canvasHeight = 300,
+        canvasWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--size")),
+        canvasHeight = canvasWidth,
         lineWidth = 2,
-        arrowSize = 8,
-        arrowWidth = arrowSize / 4,
-        arrowFill = 1,
-        arrowClosed = 0,
-        showErrorArrow = 1,
+        /* main body line width */
         showErrorSides = 1;
 
     setTheme();
@@ -409,15 +408,10 @@ function init(e)
         //   ctx.fillStyle = color.fill;
         ctxCone.fillRect(0, 0, elCanvasCone.width, elCanvasCone.width);
 
+        let arrow = new Arrow(ctxCone);
         const max = Math.max(d1, d2, h),
-            arrowLineOffset = arrowClosed ? arrowSize : 0,
             lineWidthOffset = 6,
-            maxWidth =
-            elCanvasCone.width -
-            lineWidthOffset -
-            (max == h ? lineWidthOffset : 0) -
-            arrowWidth * 2 -
-            lineWidth * (max == h ? 0.5 : 1),
+            maxWidth = elCanvasCone.width - lineWidthOffset - (max == h ? lineWidthOffset : 0) - arrow.headWidth * 2 - lineWidth * (max == h ? 0.5 : 1),
             n2p = new N2P(max, maxWidth),
             _h = n2p(h),
             offsetY = (canvasHeight - _h) / 2,
@@ -437,94 +431,12 @@ function init(e)
             arrowRightTop = offsetY + _r1Tilt,
             arrowRightBottom = _h + offsetY - _r2Tilt;
 
-        ctxCone.lineWidth = 0.5;
-        let arrowDraw = e =>
-        {
-            ctxCone.strokeStyle = e && showErrorArrow ? color.error : color.stroke;
-            ctxCone.fillStyle = e && showErrorArrow ? color.error : color.stroke;
-            ctxCone.stroke();
-            if (arrowFill) ctxCone.fill();
-        };
         //top arrow
-        //line
-        ctxCone.beginPath();
-        ctxCone.moveTo(arrowTopLeft + arrowLineOffset, arrowTopY);
-        ctxCone.lineTo(arrowTopRight - arrowLineOffset, arrowTopY);
-        arrowDraw(errD1);
-
-        //right
-        ctxCone.save();
-        ctxCone.globalAlpha = 0.5;
-        //left
-        ctxCone.beginPath();
-        ctxCone.moveTo(arrowTopLeft + arrowSize, arrowTopY - arrowWidth);
-        ctxCone.lineTo(arrowTopLeft, arrowTopY);
-        ctxCone.lineTo(arrowTopLeft + arrowSize, arrowTopY + arrowWidth);
-        if (arrowClosed)
-            ctxCone.lineTo(arrowTopLeft + arrowSize, arrowTopY - arrowWidth);
-
-        ctxCone.moveTo(arrowTopRight - arrowSize, arrowTopY - arrowWidth);
-        ctxCone.lineTo(arrowTopRight, arrowTopY);
-        ctxCone.lineTo(arrowTopRight - arrowSize, arrowTopY + arrowWidth);
-        if (arrowClosed)
-            ctxCone.lineTo(arrowTopRight - arrowSize, arrowTopY - arrowWidth);
-
-        arrowDraw(errD1);
-        ctxCone.restore();
-
+        arrow([arrowTopLeft, arrowTopY, arrowTopRight, arrowTopY], true, true, errD1);
         //bottom arrow
-        ctxCone.beginPath();
-        //line
-        ctxCone.moveTo(arrowBottomLeft + arrowLineOffset, arrowBottomY);
-        ctxCone.lineTo(arrowBottomRight - arrowLineOffset, arrowBottomY);
-        arrowDraw(errD2);
-
-        //left
-        ctxCone.save();
-        ctxCone.beginPath();
-        ctxCone.globalAlpha = 0.5;
-        ctxCone.moveTo(arrowBottomLeft + arrowSize, arrowBottomY - arrowWidth);
-        ctxCone.lineTo(arrowBottomLeft, arrowBottomY);
-        ctxCone.lineTo(arrowBottomLeft + arrowSize, arrowBottomY + arrowWidth);
-        if (arrowClosed)
-            ctxCone.lineTo(arrowBottomLeft + arrowSize, arrowBottomY - arrowWidth);
-
-        //right
-        ctxCone.moveTo(arrowBottomRight - arrowSize, arrowBottomY - arrowWidth);
-        ctxCone.lineTo(arrowBottomRight, arrowBottomY);
-        ctxCone.lineTo(arrowBottomRight - arrowSize, arrowBottomY + arrowWidth);
-        if (arrowClosed)
-            ctxCone.lineTo(arrowBottomRight - arrowSize, arrowBottomY - arrowWidth);
-
-        arrowDraw(errD2);
-        ctxCone.restore();
-
+        arrow([arrowBottomLeft, arrowBottomY, arrowBottomRight, arrowBottomY], true, true, errD2);
         //vertical arrow
-        //line
-        ctxCone.beginPath();
-        ctxCone.moveTo(arrowRightX, arrowRightTop + arrowLineOffset);
-        ctxCone.lineTo(arrowRightX, arrowRightBottom - arrowLineOffset);
-        arrowDraw(errH);
-
-        //top
-        ctxCone.save();
-        ctxCone.globalAlpha = 0.5;
-        ctxCone.beginPath();
-        ctxCone.moveTo(arrowRightX + arrowWidth, arrowRightTop + arrowSize);
-        ctxCone.lineTo(arrowRightX, arrowRightTop);
-        ctxCone.lineTo(arrowRightX - arrowWidth, arrowRightTop + arrowSize);
-        if (arrowClosed)
-            ctxCone.lineTo(arrowRightX + arrowWidth, arrowRightTop + arrowSize);
-
-        //bottom
-        ctxCone.moveTo(arrowRightX + arrowWidth, arrowRightBottom - arrowSize);
-        ctxCone.lineTo(arrowRightX, arrowRightBottom);
-        ctxCone.lineTo(arrowRightX - arrowWidth, arrowRightBottom - arrowSize);
-        if (arrowClosed)
-            ctxCone.lineTo(arrowRightX + arrowWidth, arrowRightBottom - arrowSize);
-
-        arrowDraw(errH);
-        ctxCone.restore();
+        arrow([arrowRightX, arrowRightTop, arrowRightX, arrowRightBottom], true, true, errH);
 
         ctxD1 = new Path2D();
         ctxD1.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI * 2); //top ellipse
@@ -610,7 +522,7 @@ function init(e)
 
         ctxCone.beginPath();
         ctxCone.setLineDash([_r2Tilt / 4, _r2Tilt / 3]);
-        ctxCone.lineWidth = lineWidth / 4;
+        ctxCone.lineWidth /= 2;
         ctxCone.strokeStyle =
             errD2 && showErrorSides ?
             color.error :
@@ -708,21 +620,26 @@ function init(e)
             r2e[1] > 0 ?
             data.r2 * 2 :
             Math.max(
-                data.coord2length(...r2e),
+                data.lineLength(...r2e),
                 data.r2 - (data.r2 - Math.abs(r1e[1]))
             );
 
-        dxf.viewport(0, vY, vW);
+        dxf.viewport(d1 == d2 ? data.circumference1 / 2 : 0, d1 == d2 ? h / 2 : vY, d1 == d2 ? data.circumference1 / 1.5 : vW);
         dxf.setUnits("Inches");
-        dxf.drawPolyline(
-            [
-                [r2e[0], r2e[1], Math.tan(data.angleRad / 4)],
-                [r2e[2], r2e[3]],
-                [r1e[2], r1e[3], -Math.tan(data.angleRad / 4)],
-                [r1e[0], r1e[1]],
-            ],
-            true
-        );
+        if (d1 == d2)
+        {
+            dxf.drawRect(0, 0, data.circumference1, h);
+        }
+        else
+            dxf.drawPolyline(
+                [
+                    [r2e[0], r2e[1], Math.tan(data.angleRad / 4)],
+                    [r2e[2], r2e[3]],
+                    [r1e[2], r1e[3], -Math.tan(data.angleRad / 4)],
+                    [r1e[0], r1e[1]],
+                ],
+                true
+            );
 
         const link = document.getElementById("dxf");
         link.setAttribute(
@@ -737,129 +654,77 @@ function init(e)
         );
         clearTimeout(link.timer);
         //  link.timer = setTimeout( link.click.bind(link), 2000);
-
-        const textR1 = fractionFormat(fractionLimit(data.r1)),
-            textR2 = fractionFormat(fractionLimit(data.r2)),
-            textL1 = fractionFormat(fractionLimit(data.l1)),
-            textL2 = fractionFormat(fractionLimit(data.l2)),
-            textL3 = fractionFormat(fractionLimit(data.l3)),
+        const f = t => ("" + t).replace(/^(NaN|Infinity)$/, "n/a"),
+            textR1 = f(fractionFormat(fractionLimit(data.r1))),
+            textR2 = f(fractionFormat(fractionLimit(data.r2))),
+            textL1 = f(fractionFormat(fractionLimit(data.l1))),
+            textL2 = f(fractionFormat(fractionLimit(data.l2))),
+            textL3 = f(fractionFormat(fractionLimit(data.l3))),
             textAngle = round(toDegree(data.angleRad));
 
-        showValue(elR1, textR1, "(" + data.$r1 + ")");
-        showValue(elR2, textR2, "(" + data.$r2 + ")");
-        showValue(elL1, textL1, "(" + data.$l1 + ")");
-        showValue(elL2, textL2, "(" + data.$l2 + ")");
-        showValue(elL3, textL3, "(" + data.$l3 + ")");
-        showValue(
-            elAngle,
-            textAngle + "°",
-            "(" + round(data.angleRad) + " radians)"
-        );
+        showValue(elR1, textR1, "(" + f(data.$r1) + ")");
+        showValue(elR2, textR2, "(" + f(data.$r2) + ")");
+        showValue(elL1, textL1, "(" + f(data.$l1) + ")");
+        showValue(elL2, textL2, "(" + f(data.$l2) + ")");
+        showValue(elL3, textL3, "(" + f(data.$l3) + ")");
+        showValue(elAngle, textAngle + "°", "(" + round(data.angleRad) + " radians)");
 
         /* mock-up */
-        elCanvasResult2.width = 300;
-        elCanvasResult2.height = 500;
+        const ctxR2 = elCanvasResult2.getContext("2d"),
+            resStyle = window.getComputedStyle(elCanvasResult2);
+
+        elCanvasResult2.width = parseFloat(resStyle.getPropertyValue("--width"));
+        elCanvasResult2.height = parseFloat(resStyle.getPropertyValue("--height"));
         elCanvasResult2.style.width = elCanvasResult2.width + "px";
         elCanvasResult2.style.height = elCanvasResult2.height + "px";
-        const ctxR2 = elCanvasResult2.getContext("2d");
+        arrow = new Arrow(ctxR2);
+
         ctxR2.translate(7, 0);
-        const resStyle = window.getComputedStyle(elCanvasResult2);
-        ctxR2.font = resStyle.fontSize + " " + resStyle.fontFamily;
+        ctxR2.font = resStyle.font;
         ctxR2.textAlign = "center";
-        let _lineWidth = color.darkMode ? 1 : 1;
         const d = drawImage(
             elCanvasResult2,
             1,
-            2.6,
-            9,
+            2,
+            4,
             2,
             color.stroke,
             "transparent"
         );
-        ctxR2.lineWidth = 0.5;
+        ctxR2.lineWidth = 0.25;
         ctxR2.strokeStyle = color.stroke;
         ctxR2.fillStyle = color.stroke;
 
         /* R1 */
-        ctxR2.beginPath();
-        let x1 = d.x - 14,
-            x2 = d.bottomArcEnds[2] - 14,
+        let x1 = d.x - 30,
+            x2 = d.topArcEnds[2] - 30,
             y1 = d.y,
-            y2 = d.bottomArcEnds[1] - 10;
-        ctxR2.moveTo(x1, d.y);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.stroke();
+            y2 = d.topArcEnds[1] - 10;
 
-        /* arrow tips */
-        ctxR2.save();
-        ctxR2.globalAlpha = 0.5;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x1, y1 + arrowSize);
-        ctxR2.lineTo(x1, y1);
-        ctxR2.lineTo(x1 - arrowWidth * 2, y1 + arrowSize - 1);
-        ctxR2.moveTo(x2, y2 - arrowSize);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.lineTo(x2 + arrowWidth * 2, y2 - arrowSize + 1);
-        ctxR2.fill();
-        ctxR2.stroke();
-        ctxR2.restore();
-
-        /* text */
-        fillText(textR2, "(R2)", [x1,y1,x2,y2], d.bottomArcEnds[1] - d._rH / 2, Math.PI * 1.5 + d.angleRad / 2);
+        /** arrow R1 */
+        arrow([x1, y1, x2, y2], true, true, false, [elR1, [x1, y1, x2, y2], d.topArcEnds[1] / 2]);
 
         /* R2 */
-        x1 = d.x - 30;
-        x2 = d.topArcEnds[2] - 30;
-        y2 = d.topArcEnds[1] - 10;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x1, y1);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.stroke();
+        ctxR2.globalAlpha = 1;
+        x1 = d.x - 14;
+        x2 = d.bottomArcEnds[2] - 14;
+        y2 = d.bottomArcEnds[1] - 10;
 
-        /* arrow tips */
-        ctxR2.save();
-        ctxR2.globalAlpha = 0.5;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x1, y1 + arrowSize);
-        ctxR2.lineTo(x1, y1);
-        ctxR2.lineTo(x1 - arrowWidth * 2, y1 + arrowSize - 1);
-        ctxR2.moveTo(x2, y2 - arrowSize);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.lineTo(x2 + arrowWidth * 2, y2 - arrowSize + 1);
-        ctxR2.fill();
-        ctxR2.stroke();
-        ctxR2.restore();
-
-        /* text */
-        fillText(textR1, "(R1)", [x1,y1,x2,y2], d.topArcEnds[1] / 2, Math.PI * 1.5 + d.angleRad / 2);
+        /** arrow R2 */
+        arrow([x1, y1, x2, y2], true, true, false, [elR2, [x1, y1, x2, y2], d.bottomArcEnds[1] - d._rH / 2]);
 
         /* Angle */
-        x1 = d.x + 1;
-        y1 = d.y + 20;
-        x2 = x1 + 20;
+        x1 = d.x;
+        y1 = d.y + 40;
+        x2 = x1 + 30;
         y2 = y1;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x1, y1);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.stroke();
 
-        /* arrow tips */
-        ctxR2.save();
-        ctxR2.globalAlpha = 0.5;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x1 + arrowSize, y1 - arrowWidth);
-        ctxR2.lineTo(x1, y1);
-        ctxR2.lineTo(x1 + arrowSize, y1 + arrowWidth);
-        ctxR2.fill();
-        ctxR2.stroke();
-        ctxR2.restore();
-
-        /* text */
+        /** arrow Angle */
         ctxR2.save();
         ctxR2.textAlign = "start";
         ctxR2.textBaseline = "middle";
-        const fontSize = parseFloat(resStyle.fontSize)/3;
-        fillText(textAngle + "°", "(Angle)", [x2,y2 + fontSize,x1,y1 + fontSize], -5, undefined, true);
+        const fontSize = parseFloat(resStyle.fontSize) / 3;
+        arrow([x1, y1, x2, y2], true, false, false, [elAngle, [x2, y2 + fontSize, x1, y1 + fontSize], -5, true]);
         ctxR2.restore();
 
         /* L1 */
@@ -867,90 +732,27 @@ function init(e)
         y1 = d.topArcEnds[1] - 8;
         x2 = d.topArcEnds[2] + 8;
         y2 = d.topArcEnds[3] - 8;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x1, y1);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.stroke();
 
-        /* arrow tips */
-        ctxR2.save();
-        ctxR2.globalAlpha = 0.5;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x2 + arrowSize, y2 - arrowWidth);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.lineTo(x2 + arrowSize, y2 + arrowWidth);
-        ctxR2.moveTo(x1 - arrowSize, y1 - arrowWidth);
-        ctxR2.lineTo(x1, y1);
-        ctxR2.lineTo(x1 - arrowSize, y1 + arrowWidth);
-        ctxR2.fill();
-        ctxR2.stroke();
-        ctxR2.restore();
-
-        /* text */
-        fillText(textL1, "(L1)", [x1,y1,x2,y2], (x1 - x2) / 2);
+        /** arrow L1 */
+        arrow([x1, y1, x2, y2], true, true, false, [elL1, [x1, y1, x2, y2], (x1 - x2) / 2]);
 
         /* L2 */
         x1 = d.bottomArcEnds[0] - 8;
         y1 = d.bottomArcEnds[1] - 5;
         x2 = d.bottomArcEnds[2] + 8;
         y2 = d.bottomArcEnds[3] - 5;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x1, y1);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.stroke();
 
-        /* arrow tips */
-        ctxR2.save();
-        ctxR2.globalAlpha = 0.5;
-        ctxR2.beginPath();
-        ctxR2.moveTo(x2 + arrowSize, y2 - arrowWidth);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.lineTo(x2 + arrowSize, y2 + arrowWidth);
-        ctxR2.moveTo(x1 - arrowSize, y1 - arrowWidth);
-        ctxR2.lineTo(x1, y1);
-        ctxR2.lineTo(x1 - arrowSize, y1 + arrowWidth);
-        ctxR2.fill();
-        ctxR2.stroke();
-        ctxR2.restore();
-
-        /* text */
-        fillText(textL2, "(L2)", [x1,y1,x2,y2], (x1 - x2) / 2);
+        /** arrow L2 */
+        arrow([x1, y1, x2, y2], true, true, false, [elL2, [x1, y1, x2, y2], (x1 - x2) / 2]);
 
         /* L3 */
-        const arrowAngle = angle(0, 0, arrowSize, arrowWidth);
         x1 = d.topArcEnds[0] - 5;
         y1 = d.topArcEnds[1] + 8;
         x2 = d.bottomArcEnds[2] + 8;
         y2 = d.bottomArcEnds[3] - 8;
 
-        ctxR2.beginPath();
-        ctxR2.moveTo(x1, y1);
-        ctxR2.lineTo(x2, y2);
-        ctxR2.stroke();
-
-        /* arrow tips */
-        ctxR2.save();
-        ctxR2.globalAlpha = 0.5;
-        ctxR2.beginPath();
-        ctxR2.translate(x2, y2);
-        ctxR2.rotate(angle(x2, y2, x1, y1) + arrowAngle / 4);
-        ctxR2.moveTo(0, 0);
-        ctxR2.lineTo(arrowSize, -arrowWidth);
-        ctxR2.lineTo(arrowSize, arrowWidth);
-        ctxR2.restore();
-        ctxR2.save();
-        ctxR2.globalAlpha = 0.5;
-        ctxR2.translate(x1, y1);
-        ctxR2.rotate(angle(x1, y1, x2, y2) - arrowAngle / 8);
-        ctxR2.moveTo(0, 0);
-        ctxR2.lineTo(arrowSize, arrowWidth);
-        ctxR2.lineTo(arrowSize, -arrowWidth);
-        ctxR2.fill();
-        ctxR2.stroke();
-        ctxR2.restore();
-
-        /* text */
-        fillText(textL3, "(L3)", [x1,y1,x2,y2], d.coord2length(x1, y1, x2, y2)/2.5, Math.PI * 1.5 + d.angleRad);
+        /** arrow L3 */
+        arrow([x1, y1, x2, y2], true, true, false, [elL3, [x1, y1, x2, y2], d.lineLength(x1, y1, x2, y2) / 2.2]);
 
         /* move input fields */
         let r = elD1.getBoundingClientRect(),
@@ -976,47 +778,168 @@ function init(e)
         if (!errD2) settings.b = d2Value;
         if (!errH) settings.h = hValue;
 
-        function getPointOnLine(x1, y1, x2, y2, dist)
+    }
+
+    function Arrow(ctx, settings)
+    {
+        const style = getComputedStyle(ctx.canvas),
+            getValue = (name, fallback) =>
+            {
+                let val = style.getPropertyValue("--" + name);
+                if (val === "" || val === '""')
+                    val = fallback || "";
+                else
+                    val = val;
+                switch (typeof fallback)
+                {
+                case "number":
+                    val = parseFloat(val);
+                    break;
+                case "boolean":
+                    val = val.toLowerCase() == "true" || val == "1";
+                    break;
+                }
+                return val;
+            };
+        settings = Object.assign(
         {
-            let len = d.coord2length(x1, y1, x2, y2),
-                t = dist/len;
-            return [((1 - t) * x1) + (t * x2), ((1 - t) * y1) + (t * y2)];
-        }
-    
-        function fillText(text, text2, p, dist, r, nopos)
-        {
-            ctxR2.save();
-            let [x1,y1,x2,y2] = p,
+            _headWidth: getValue("arrowHeadWidth"),
+            headSize: getValue("arrowHeadSize", 8),
+            get headWidth()
+            {
+                return this._headWidth || this.headSize / 4;
+            },
+            set headWidth(val)
+            {
+                this._headWidth = val;
+            },
+            fill: getValue("arrowFill", true),
+            headClosed: getValue("arrowHeadClosed", true),
+            showError: true,
+            lineWidth: getValue("arrowLineWidth", 0.35),
+            alpha: 1,
+            color: getValue("arrowColor", color.stroke),
+            colorError: getValue("arrowColorError", color.error)
+        }, settings ||
+        {});
+
+        const fillText = (el, p, dist, nopos) =>
+            {
+                ctx.save();
+                const ca = ctx.globalAlpha,
+                    resStyle = window.getComputedStyle(elCanvasResult2);
+                let text = el.querySelector("span").textContent,
+                    text2 = el.querySelector("label > label").textContent;
+
+                ctx.globalAlpha = 1;
+                let [x1, y1, x2, y2] = p,
                 [px, py] = getPerpendicular(x1, y1, x2, y2, 5),
-                xp1 = x1 + px,
-                xp2 = x2 + px,
-                yp1 = y1 - py,
-                yp2 = y2 - py;
-    
-            ctxR2.translate(...getPointOnLine(xp1, yp1, xp2, yp2, dist));
-            if (r !== undefined)
-                ctxR2.rotate(r);
-    
-            const fontSize = parseFloat(resStyle.fontSize)/1.7 + "px";
-            elHidden.style.padding = 0;
-            elHidden.style.border = 0;
-            elHidden.textContent = text;
-            elHidden.innerHTML = `${text}<span style="font-size:${fontSize};">${text2}</span>`;
-            elHidden.style.fontSize = resStyle.fontSize + "px";
-            elHidden.style.fontFamily = resStyle.fontFamily;
-            if (!nopos)
-                ctxR2.textAlign = "start";
-    
-            ctxR2.fillText(text, nopos ? 0 : -elHidden.getBoundingClientRect().width/1.5, 0);
-            ctxR2.fillStyle = color.label;
-            ctxR2.font = fontSize + " " + resStyle.fontFamily;
-            ctxR2.textAlign = nopos ? "start" : "end";
-            if (!nopos)
-                ctxR2.textBaseline = "bottom";
-            // elHidden.textContent = text;
-            ctxR2.fillText(text2, elHidden.getBoundingClientRect().width/2 + (nopos ? 15 : 4), 0);
-            ctxR2.restore();
-        }
+                    xp1 = x1 + px,
+                    xp2 = x2 + px,
+                    yp1 = y1 - py,
+                    yp2 = y2 - py;
+                text2 = "" + text2 + "";
+                ctx.translate(...getPointOnLine(xp1, yp1, xp2, yp2, dist));
+                ctx.rotate(Math.atan2(yp2 - yp1, xp2 - xp1) - Math.PI);
+
+                const fontSize = parseFloat(resStyle.fontSize) / 1.7 + "px";
+                elHidden.style.padding = 0;
+                elHidden.style.border = 0;
+                elHidden.textContent = text;
+                elHidden.style.font = resStyle.font;
+                elHidden.innerHTML = `${text}<span style="font-size:${fontSize};">${text2}</span>`;
+                if (!nopos)
+                    ctx.textAlign = "start";
+
+                ctx.fillText(text, nopos ? -2 : -elHidden.getBoundingClientRect().width / 1.9, 0);
+                ctx.fillStyle = color.label;
+                ctx.font = fontSize + " " + resStyle.fontFamily;
+                ctx.textAlign = "end";
+                if (!nopos)
+                    ctx.textBaseline = "bottom";
+
+                ctx.fillText(text2, elHidden.getBoundingClientRect().width / (nopos ? 1 : 2) + 2, 0);
+                ctx.globalAlpha = ca;
+                ctx.restore();
+            },
+
+            arrowDraw = (e, a) =>
+            {
+                ctx.lineWidth = settings.lineWidth;
+                ctx.globalAlpha = settings.alpha * (settings.fill && a ? a : 1);
+                ctx.strokeStyle = e && settings.showError ? settings.colorError : settings.color;
+                ctx.fillStyle = e && settings.showError ? settings.colorError : settings.color;
+                if (settings.fill)
+                    ctx.fill();
+
+                ctx.stroke();
+
+            },
+
+            drawArrow = (x1, y1, x2, y2, start, end, err) =>
+            {
+                const rad = angle(x1, y1, x2, y2);
+                ctx.save();
+                /** line */
+                ctx.beginPath();
+                ctx.moveTo(...getPointOnLine(x1, y1, x2, y2, settings.headClosed && start ? settings.headSize : 0));
+                ctx.lineTo(...getPointOnLine(x2, y2, x1, y1, settings.headClosed && end ? settings.headSize : 0));
+                arrowDraw(err);
+                ctx.restore();
+                /** arrows */
+                if (start)
+                {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.translate(x1, y1);
+                    ctx.rotate(rad);
+                    ctx.moveTo(settings.headSize, -settings.headWidth);
+                    ctx.lineTo(0, 0);
+                    ctx.lineTo(settings.headSize, settings.headWidth);
+                    if (settings.headClosed)
+                        ctx.lineTo(settings.headSize, -settings.headWidth);
+
+                    arrowDraw(err, settings.lineWidth);
+                    ctx.restore();
+                }
+                if (end)
+                {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.translate(x2, y2);
+                    ctx.rotate(rad);
+                    ctx.moveTo(-settings.headSize, -settings.headWidth);
+                    ctx.lineTo(0, 0);
+                    ctx.lineTo(-settings.headSize, settings.headWidth);
+                    if (settings.headClosed)
+                        ctx.lineTo(-settings.headSize, -settings.headWidth);
+
+                    arrowDraw(err, settings.lineWidth);
+                    ctx.restore();
+                }
+            },
+
+            draw = (p, start, end, err, text) =>
+            {
+                if (start || end)
+                    drawArrow(...p, start, end, err);
+
+                if (text)
+                    fillText(...text);
+            };
+        return Object.assign(draw, settings);
+    }
+
+    function lineLength(x1, y1, x2, y2)
+    {
+        return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+    }
+
+    function getPointOnLine(x1, y1, x2, y2, dist)
+    {
+        let len = lineLength(x1, y1, x2, y2),
+            t = dist / len;
+        return [((1 - t) * x1) + (t * x2), ((1 - t) * y1) + (t * y2)];
     }
 
     function getPerpendicular(x1, y1, x2, y2, len)
@@ -1029,7 +952,7 @@ function init(e)
         py *= dist;
         return [px, py];
     }
-    
+
     function angle(cx, cy, ex, ey)
     {
         return Math.atan2(ey - cy, ex - cx);
@@ -1040,7 +963,8 @@ function init(e)
         const children = el.querySelectorAll("span");
         for (let i = 0; i < args.length; i++)
         {
-            if (children[i]) children[i].innerHTML = args[i];
+            if (children[i])
+                children[i].innerHTML = args[i];
         }
     }
 
@@ -1069,7 +993,7 @@ function init(e)
 
     function N2P(max, size)
     {
-        return n => (n * size) / max;
+        return n => ((n * size) / max) || 0;
     }
 
     function round(n)
