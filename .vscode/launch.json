@@ -15,11 +15,15 @@
   "console": "internalConsole",
   "attach": "restart",
   "restart": true,
-//   "trace": true,
+//  "trace": true,
   "sourceMap": false,
   "runtimeArgs": [
       "--auto-open-devtools-for-tabs"
-  ]
+  ],
+  "env": {
+    "XDEBUG_MODE": "debug,develop",
+    "XDEBUG_CONFIG": "client_port=9000"
+  }
 },
       {
           "type": "vscode-edge-devtools.debug",
@@ -39,7 +43,7 @@
           "name": "Listen for Xdebug",
           "type": "php",
           "request": "launch",
-          "port": 9081
+          "port": 9000
       },
       {
           "name": "Launch currently open script",
