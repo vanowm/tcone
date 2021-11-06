@@ -1,0 +1,5 @@
+RewriteEngine On 
+
+#RewriteBase /
+
+RewriteRule ^css/(.*)$ index.php?$1 [L]

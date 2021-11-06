@@ -415,15 +415,15 @@ nav > .close-overlay {
 }
 
 .download>#dxf::after {
-  content: url("../?dxf_white_black");
+  content: url("images/dxf_white_black.svg");
 }
 
 .download>#pdf::after {
-  content: url("../?pdf_white_black");
+  content: url("images/pdf_white_black.svg");
 }
 
 .download>#png::after {
-  content: url("../?png_white_black");
+  content: url("images/png_white_black.svg");
 }
 
 nav > input

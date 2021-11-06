@@ -9,7 +9,7 @@
   "name": "Launch Edge",
   "request": "launch",
   "type": "pwa-msedge",
-  "url": "http://storage/experiments/tcone/",
+  "url": "https://vano.org/experiments/tcone/",
   "webRoot": "${workspaceFolder}",
   "outputCapture": "console",
   "console": "internalConsole",

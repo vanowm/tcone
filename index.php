@@ -9,41 +9,104 @@ if (@$_SERVER['QUERY_STRING'])
 
     return $c;
   }
-  $colors = array("unset" /* body */, "unset" /* accent3 */, "unset" /* accent2 */, "unset" /* accent1 */, "transparent" /* accent */);
-  $data = @file_get_contents("css/images/" . preg_replace_callback(
-    "/^([a-zA-Z0-9]+)(?:[_-]([a-zA-Z0-9]+)(?:[_-]([a-zA-Z0-9]+)(?:[_-]([a-zA-Z0-9]+)(?:[_-]([a-zA-Z0-9]+))?)?)?)?$/",
-    function ($m)
+  function parseFilename($fileinfo)
+  {
+    $filename = $fileinfo['filename'];
+    if ($fileinfo["dirname"] == "images" && $fileinfo["extension"] == "svg")
     {
-      global $colors;
-      $color = getColor($m[2]);
-      if ($color)
-        $colors[0] = $color;
+      $filename = preg_replace_callback(
+        "/^([a-zA-Z0-9]+)(?:[_-]([a-zA-Z0-9]+)(?:[_-]([a-zA-Z0-9]+)(?:[_-]([a-zA-Z0-9]+)(?:[_-]([a-zA-Z0-9]+))?)?)?)?$/",
+        function ($m)
+        {
+          global $colors;
+          $color = getColor(@$m[2]);
+          if ($color)
+            $colors[0] = $color;
+  
+          $color = getColor(@$m[3]);
+          if ($color)
+            $colors[1] = $color;
+  
+          $color = getColor(@$m[4]);
+          if ($color)
+            $colors[2] = $color;
+  
+          $color = getColor(@$m[5]);
+          if ($color)
+            $colors[3] = $color;
+  
+          $color = getColor(@$m[6]);
+          if ($color)
+            $colors[4] = $color;
+  
+          return $m[1];
+        },
+        $fileinfo["filename"]
+      );
+    }
+    return $filename;
+  }
+  $colors = array("unset" /* body */, "unset" /* accent3 */, "unset" /* accent2 */, "unset" /* accent1 */, "transparent" /* accent */);
+  $fileinfo = pathinfo($_SERVER['QUERY_STRING']);
+  $filename = parseFilename($fileinfo);
+  $filename .= "." . $fileinfo['extension'];
+  $filename = preg_replace("/^\.+/", "", $filename);
+  $dir = "css/" . $fileinfo["dirname"] . "/";
+  $file = $dir . $filename;
+  $timestamp = @filemtime($file);
+  $timestampExtra = "";
+  $data = "";
+  // alert("wtf");
+  // alert(apcu_fetch('foo'));
+  // $bar = "ok";
+  // alert(apcu_store('foo', $bar));
+  // exit;
+  // if ($fileinfo["extension"] == "css")
+  // {
+  //   $data = preg_replace_callback("/\\$\{([^}]+)}/", function($m)
+  //   {
+  //     global $timestampExtra;
+  //     $fileinfo = pathinfo($m[1]);
+  //     $filename = parseFilename($fileinfo);
+  //     $filename .= "." . $fileinfo['extension'];
+  //     $dir = "css/" . $fileinfo["dirname"] . "/";
+  //     $file = $dir . $filename;
+  //     $ts = @filemtime($file);
+  //     $timestampExtra .= $ts;
+  //     return $m[1] . "?" . crc32($ts);
+  //   }, @file_get_contents($file));
+  // }
 
-      $color = getColor($m[3]);
-      if ($color)
-        $colors[1] = $color;
+  $tsstring = gmdate('D, d M Y H:i:s ', $timestamp) . 'GMT';
+  $etag = '"' . crc32($file . $timestamp . $timestampExtra) . '"';
 
-      $color = getColor($m[4]);
-      if ($color)
-        $colors[2] = $color;
+  $if_modified_since = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false;
+  $if_none_match = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? $_SERVER['HTTP_IF_NONE_MATCH'] : false;
+  if ((($if_none_match && $if_none_match == $etag) || (!$if_none_match)) &&
+      ($if_modified_since && $if_modified_since == $tsstring))
+  {
+      header('HTTP/1.1 304 Not Modified');
+      exit();
+  }
+  else
+  {
+    $mime = Array(
+      "css" => "text/css",
+      "js" => "application/javascript"
+    );
+    header("Cache-Control: public");
+    header("Last-Modified: $tsstring");
+    header("ETag: $etag");
+    $mime = @$mime[$fileinfo["extension"]] ? $mime[$fileinfo["extension"]] : @mime_content_type($file);
+    if ($mime)
+      header("Content-Type: " . $mime);
 
-      $color = getColor($m[5]);
-      if ($color)
-        $colors[3] = $color;
+    if (!$data)
+      $data = @file_get_contents($file);
 
-      $color = getColor($m[6]);
-      if ($color)
-        $colors[4] = $color;
-
-      return $m[1];
-    },
-    $_SERVER['QUERY_STRING']
-  ) . ".svg");
-
-
-  $data = str_replace(array("BODY", "ACCENT1", "ACCENT2", "ACCENT3", "ACCENT"), $colors, $data);
-  header("Content-Type: image/svg+xml");
-  exit($data);
+    exit(str_replace(array("BODY", "ACCENT1", "ACCENT2", "ACCENT3", "ACCENT"), $colors, $data));
+  }
+  exit;
 }
 ?>
 <!DOCTYPE html>
@@ -62,6 +125,7 @@ if (@$_SERVER['QUERY_STRING'])
   <link rel="manifest" href="/favicon-site.webmanifest">
   <link rel="mask-icon" href="/favicon-safari-pinned-tab.svg" color="#000000">
   <title>Truncated Cone Calculator</title>
+  <script src="https://threejs.org/build/three.min.js"></script>
   <script src="<?= getfile("js/fraction.js"); ?>"></script>
   <script src="<?= getfile("js/dxf.js"); ?>"></script>
   <script src="<?= getfile("js/tcone.js"); ?>"></script>
@@ -134,6 +198,7 @@ if (@$_SERVER['QUERY_STRING'])
       </div>
     </div>
   </div>
+  <canvas id="canvas" width="300" height="300"></canvas>
   <div class="hidden">
     <div id="hidden"></div>
     <select value="test"></select>
