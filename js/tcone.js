@@ -137,6 +137,7 @@ function init(e)
     ctx.beginPath();
     if (isFinite(data.r1))
     {
+      ctx.beginPath();
       ctx.arc(
         data.x,
         data.y,
@@ -144,7 +145,6 @@ function init(e)
         Math.PI / 2 - data.angleRad / 2,
         Math.PI / 2 + data.angleRad / 2
       );
-      ctx.stroke();
       ctx.arc(
         data.x,
         data.y,
@@ -155,7 +155,18 @@ function init(e)
       );
       ctx.fill();
       ctx.stroke();
+
       ctx.beginPath();
+      /* left side line */
+      // drawn by stroke of 2 arcs
+
+      /* right side line */
+      ctx.moveTo(topArcEnds[0], topArcEnds[1]);
+      ctx.lineTo(bottomArcEnds[0], bottomArcEnds[1]);
+      ctx.stroke();
+
+      ctx.beginPath();
+      /* dotted line */
       ctx.setLineDash([5, 8]);
       ctx.lineWidth = _lineWidth / 4;
       ctx.moveTo(topArcEnds[2], topArcEnds[1]);
@@ -163,17 +174,8 @@ function init(e)
       ctx.lineTo(topArcEnds[0], topArcEnds[1]);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.lineWidth = _lineWidth;
-      ctx.moveTo(topArcEnds[0], topArcEnds[1]);
-      ctx.lineTo(...bottomArcEnds);
-      ctx.moveTo(topArcEnds[2], topArcEnds[1]);
-      ctx.lineTo(bottomArcEnds[2], bottomArcEnds[1]);
-      ctx.stroke();
-      ctx.lineWidth = _lineWidth / 4;
-      ctx.beginPath();
-      ctx.lineTo(bottomArcEnds[0], bottomArcEnds[1]);
-      ctx.stroke();
+
+      /* center mark */
       ctx.beginPath();
       ctx.arc(data.x, data.y, 2, 0, Math.PI * 2);
       ctx.fillStyle = "red";
@@ -428,7 +430,7 @@ function init(e)
       .getPropertyValue("--size")
     ),
     canvasHeight = canvasWidth,
-    lineWidth = 2,
+    lineWidth = 1,
     /* main body line width */
     showErrorSides = 1;
 
@@ -578,20 +580,17 @@ functions
     let arrow = new Arrow(ctxCone);
     const max = Math.max(d1, d2, h),
       lineWidthOffset = 6,
-      maxWidth =
-      elCanvasCone.width -
-      lineWidthOffset -
-      (max == h ? lineWidthOffset : 0) -
-      arrow.headWidth * 2 -
-      lineWidth * (max == h ? 0.5 : 1),
+      maxWidth = elCanvasCone.width - lineWidthOffset - (max == h ? lineWidthOffset : 0) - arrow.headWidth * 2 - lineWidth * (max == h ? 0.5 : 1),
       n2p = new N2P(max, maxWidth),
       _h = n2p(h),
       offsetY = (canvasHeight - _h) / 2,
       _r1 = n2p(d1 / 2),
       _r2 = n2p(d2 / 2),
-      t = Math.min(_h / 1.7, 18) - _h / 33,
-      _r1Tilt = n2p(d1 / t),
-      _r2Tilt = n2p(d2 / t),
+      dMax = Math.max(d1, d2),
+      ratio = Math.min(dMax, h) / Math.max(dMax, h),
+      t = Math.abs(ratio* h % 18 - 18),//Math.min(1, Math.max(0.1, tt)),
+      _r1Tilt = n2p(Math.max(0, d1 / (t || 1))),
+      _r2Tilt = n2p(Math.max(0, d2 / (t || 1))),
       _x = n2p(Math.max(d1, d2)) / 2 + lineWidth,
       arrowTopY = offsetY - lineWidthOffset,
       arrowTopLeft = _x - _r1,
@@ -676,25 +675,8 @@ functions
       //bottom outside ellipse
       else if (el === elH)
       {
-        ctxCone.ellipse(
-          _x,
-          _r1Tilt + offsetY,
-          _r1,
-          _r1Tilt,
-          Math.PI,
-          0,
-          Math.PI,
-          true
-        ); //top ellipse
-        ctxCone.ellipse(
-          _x,
-          _h - _r2Tilt + offsetY,
-          _r2,
-          _r2Tilt,
-          0,
-          0,
-          Math.PI
-        ); //bottom outside ellipse
+        ctxCone.ellipse(_x, _r1Tilt + offsetY, _r1, _r1Tilt, Math.PI, 0, Math.PI, true); //top ellipse
+        ctxCone.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI); //bottom outside ellipse
       }
       ctxCone.fill();
     };
@@ -835,7 +817,7 @@ functions
     const link = document.getElementById("dxf");
     link.setAttribute(
       "download",
-      `cone_${data.$diameter1}x${data.$diameter2}x${data.$h}.dxf`
+      `cone_template_${data.$diameter1}x${data.$diameter2}x${data.$h}.dxf`
     );
     link.href = URL.createObjectURL(
       new Blob([dxf.toDxfString()],
@@ -866,15 +848,14 @@ functions
     arrow = new Arrow(ctxR2);
 
     ctxR2.translate(7, 0);
-    ctxR2.font =
-      resStyle.fontWeight + " " + resStyle.fontSize + " " + resStyle.fontFamily;
+    ctxR2.font = resStyle.fontWeight + " " + resStyle.fontSize + " " + resStyle.fontFamily;
     ctxR2.textAlign = "center";
     const d = drawImage(
       elCanvasResult2,
       1,
       2,
       4,
-      2,
+      lineWidth,
       color.stroke,
       "transparent"
     );
@@ -975,19 +956,19 @@ functions
     /* move input fields */
     let r = elD1.getBoundingClientRect(),
       x = _x - r.width / 2 > 0 ? _x : r.width / 2,
-      y = arrowTopY - lineWidth * 2;
+      y = arrowTopY -  4;
 
     elD1.style.left = x - r.width / 2 + "px";
     elD1.style.top = y - r.height + "px";
 
     r = elD2.getBoundingClientRect();
     x = _x - r.width / 2 > 0 ? _x : r.width / 2;
-    y = arrowBottomY + r.height + lineWidth * 2;
+    y = arrowBottomY + r.height + 4;
     elD2.style.left = x - r.width / 2 + "px";
     elD2.style.top = y - r.height + "px";
 
     r = elH.getBoundingClientRect();
-    x = arrowRightX + lineWidth * 2;
+    x = arrowRightX + 4;
     y = arrowRightTop + (arrowRightBottom - arrowRightTop) / 2;
     elH.style.left = x + "px";
     elH.style.top = y - r.height / 2 + "px";
@@ -1243,7 +1224,7 @@ functions
       const val =
         i || args[args.length - 1] === false ?
         args[i] :
-        fractionFormat(fractionLimit(args[i], precision));
+        fractionFormat(fractionLimit(args[i], precision), args[i]);
       na = isNan(val);
       if (na) el.classList.add("na");
 
@@ -1302,7 +1283,7 @@ functions
       .toFraction(true);
   }
 
-  function fractionFormat(f)
+  function fractionFormat(f, n)
   {
     return f.replace(
       /^([0-9]+)\/([0-9]+)|([0-9]+)(\s+([0-9]+)\/([0-9]+))|([0-9]+)/,
@@ -1311,7 +1292,7 @@ functions
         let r = args[3] || args[7] || "";
         if (args[1] || args[5])
           r +=
-          (r !== "" ? " " : "") +
+          (r !== "" ? (round((args[1] || args[5]) / (args[2] || args[6])) == round(n % 1) ? " " : "~") : "") +
           `${args[1] || args[5]}⁄${args[2] || args[6]}`;
         // r += (r !== "" ? " " : "") + `<sup>${args[1] || args[5]}</sup>&frasl;<sub>${args[2] || args[6]}</sub>`;
         return r;
@@ -1504,6 +1485,26 @@ functions
   {
     let clicked = false,
         t;
+
+    if (e.target.dataset.popup)
+    {
+      if (!document.body.popups)
+        document.body.popups = [];
+
+      const index = document.body.popups.indexOf(e.target.dataset.popup);
+      if (e.target.checked)
+      {
+        if (index == -1)
+          document.body.popups.push(e.target.dataset.popup);
+      }
+      else
+        document.body.popups.splice(index, 1);
+
+      if (document.body.popups.length)
+        document.body.dataset.popup = document.body.popups[document.body.popups.length-1];
+      else
+        delete document.body.dataset.popup;
+    }
     switch (e.target.dataset.type)
     {
       case "reset":

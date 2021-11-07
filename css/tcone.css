@@ -20,6 +20,11 @@
   /* background-color: green; */
   font-family: "Segoe UI", Arial, Tahoma, Geneva, Verdana, sans-serif;
 }
+@media (prefers-color-scheme: dark) {
+  :root {
+   --labelColor: #67a4ff;
+ }
+}
 
 *
 {
@@ -28,6 +33,7 @@
   -ms-user-select: none;
   user-select: none;
 }
+
 #result,
 #result *
 {
@@ -36,6 +42,7 @@
   -ms-user-select: text;
   user-select: text;
 }
+
 :root[theme="dark"] {
   color-scheme: dark;
   --labelColor: #67a4ff;
@@ -93,7 +100,7 @@ input:not([style])
   top: -99999vh;
 }
 
-input {
+body:not([data-popup]) input {
   z-index: 1;
   /* border: 0; */
   width: 2em;
@@ -169,11 +176,6 @@ nav
     text-decoration: none;
 } */
 
-@media (prefers-color-scheme: dark) {
-   :root {
-    --labelColor: #67a4ff;
-  }
-}
 
 .result .table {
   text-align: end;
@@ -194,6 +196,7 @@ label.toggle > .options > *
   text-transform: uppercase;
   margin-left: 0.3em;
 }
+
 #precision {
   /* position: absolute; */
   /* z-index: 1; */
@@ -210,10 +213,12 @@ label.toggle > .options > *
   /* width: fit-content; */
   /* white-space: nowrap; */
 }
+
 .precision .option:first-child
 {
   font-size: 1em;
 }
+
 .dropdown {
   /* position: relative; */
   /* top: 0.2em; */
@@ -246,11 +251,13 @@ label.toggle > .options > *
 .dropdown-list {
   /* padding: 0 0.3em; */
 }
+
 .dropdown input[type="checkbox"]:checked ~ label
 {
   /* z-index: 3; */
   /* background-color: red; */
 }
+
 .dropdown input[type="checkbox"]:checked ~ .dropdown-list > ul {
   border: 1px solid #7f7f7f7f;
   height: max-content;
@@ -276,10 +283,12 @@ label.toggle > .options > *
 nav > .close-overlay {
   /* backdrop-filter: brightness(0.5); */
 }
+
 .close-overlay ~ * .close-overlay
 {
   z-index: 1;
 }
+
 .dropdown-list:after {
   content: "";
   position: absolute;
@@ -414,16 +423,24 @@ nav > .close-overlay {
   opacity: 0.2;
 }
 
+.download > *[href]
+{
+  opacity: 0.8;
+}
+.download > *[href]:hover
+{
+  opacity: 1;
+}
 .download>#dxf::after {
-  content: url("images/dxf_white_black.svg");
+  content: url("images/dxf_white_505050_007F00_black.svg");
 }
 
 .download>#pdf::after {
-  content: url("images/pdf_white_black.svg");
+  content: url("images/pdf_white_505050_ff0000_black.svg");
 }
 
 .download>#png::after {
-  content: url("images/png_white_black.svg");
+  content: url("images/png_white_505050_007fff_black.svg");
 }
 
 nav > input
@@ -431,19 +448,9 @@ nav > input
   display: none;
 }
 
-header {
-  display: flex;
-  flex-flow: row wrap;
-}
-header {
-  grid-template-areas:
-    "logo     logo     hamburger"
-    "nav      nav      nav";
-}
-
 .menu
 {
-  box-shadow: 0 0 8px 0 #7f7f7fff;
+  box-shadow: 0 0 8px 0px #7f7f7f7f;
   padding: 0;
   margin: 0;
   min-width: 8em;
@@ -456,6 +463,17 @@ header {
   transition: top 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   display: table;
   border-radius: 5px;
+}
+
+:root[theme="dark"] .menu
+{
+  box-shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([theme]) .menu
+ {
+   box-shadow: none;
+ }
 }
 
 .menu > *
@@ -488,7 +506,9 @@ nav>input:checked~.close-overlay
 {
   display: block;
 }
-nav>input:not(:checked)~ div.menu {
+
+nav>input:not(:checked)~ div.menu
+{
   /* display: none; */
   top: -100%;
   transition: top 0.3s cubic-bezier(0.6, -0.28, 0.74, 0.05);
@@ -532,23 +552,27 @@ nav>input:not(:checked)~ div.menu {
 .navicon:after {
   top: -0.5em;
 }
+
 #main-menu:checked ~ .menu-icon
 {
   top: 0.4em;
   right: 0.4em;
 }
+
 #main-menu:checked ~ * .navicon
 {
   background-color: transparent;
   width: 70%;
   transition: top 0.1s ease, right 0.1s ease;
 }
+
 #main-menu:checked ~ * .navicon:before
 {
   transform: rotate(-45deg);
   top: 0;
   right: 0;
 }
+
 #main-menu:checked ~ * .navicon:after
 {
   transform: rotate(45deg);
@@ -571,10 +595,12 @@ nav>input:not(:checked)~ div.menu {
 {
   transition: top .1s ease-out, right .1s ease, transform .3s ease-out;
 }
+
 label.toggle .options > *
 {
   display: none;
 }
+
 label.toggle[value="0"] .options > :nth-child(1),
 label.toggle[value="1"] .options > :nth-child(2),
 label.toggle[value="2"] .options > :nth-child(3),

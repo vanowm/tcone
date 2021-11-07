@@ -3,9 +3,9 @@ if (@$_SERVER['QUERY_STRING'])
 {
   function getColor($c)
   {
-    preg_match("/^(?:([a-fA-F0-9]{3})|([a-fA-F0-9]{6})|([a-fA-F0-9]{8}))$/", $c, $m);
+    preg_match("/^(?:([a-fA-F0-9]{8})|([a-fA-F0-9]{6})|([a-fA-F0-9]{3}))$/", $c, $m);
     if ($m)
-      $c = "#" . $m[1] . $m[2] . $m[3];
+      $c = "#" . @$m[1] . @$m[2] . @$m[3];
 
     return $c;
   }
@@ -133,34 +133,6 @@ if (@$_SERVER['QUERY_STRING'])
 </head>
 
 <body>
-  <header>
-    <nav id="navbar">
-      <input id="main-menu" type="checkbox">
-      <label for="main-menu" class="close-overlay" title=""></label>
-      <div class="menu">
-        <header>Options</header>
-        <label data-type="fraction" class="value toggle" title="Show as fractions">Show as fractions: <span class="options"><span>off</span><span>on</span>
-          </span></label>
-        <div class="precision">
-          Precision:
-          <span id="precision" class="dropdown">
-            <div class="dropdown">
-              <input id="precision-dropdown" type="checkbox">
-              <label for="precision-dropdown" class="close-overlay" title="" data-type="precision"></label>
-              <label for="precision-dropdown" class="dropdown-list">
-                <ul></ul>
-              </label>
-            </div>
-          </span>
-        </div>
-        <label data-type="theme" class="value toggle" title="Theme">Dark theme: <span class="options"><span>off</span><span>on</span><span>auto</span></span></label>
-        <label data-type="reset" class="value right font08" title="Reset all">Reset all</label>
-      </div>
-      <label for="main-menu" class="menu-icon" title="Menu">
-        <span class="navicon" aria-label="Hamburger menu 'icon'"></span>
-      </label>
-    </nav>
-  </header>
   <div class="content">
     <div>
       <div class="container input">
@@ -199,6 +171,34 @@ if (@$_SERVER['QUERY_STRING'])
     </div>
   </div>
   <canvas id="canvas" width="300" height="300"></canvas>
+  <header>
+    <nav id="navbar">
+      <input id="main-menu" type="checkbox" data-popup="mainMenu">
+      <label for="main-menu" class="close-overlay" title=""></label>
+      <div class="menu popup">
+        <header>Options</header>
+        <label data-type="fraction" class="value toggle" title="Show as fractions">Show as fractions: <span class="options"><span>off</span><span>on</span>
+          </span></label>
+        <div class="precision">
+          Precision:
+          <span id="precision" class="dropdown">
+            <div class="dropdown">
+              <input id="precision-dropdown" type="checkbox" data-popup="dropdown">
+              <label for="precision-dropdown" class="close-overlay" title="" data-type="precision"></label>
+              <label for="precision-dropdown" class="dropdown-list">
+                <ul></ul>
+              </label>
+            </div>
+          </span>
+        </div>
+        <label data-type="theme" class="value toggle" title="Theme">Dark theme: <span class="options"><span>off</span><span>on</span><span>auto</span></span></label>
+        <label data-type="reset" class="value right font08" title="Reset all">Reset all</label>
+      </div>
+      <label for="main-menu" class="menu-icon" title="Menu">
+        <span class="navicon" aria-label="Hamburger menu 'icon'"></span>
+      </label>
+    </nav>
+  </header>
   <div class="hidden">
     <div id="hidden"></div>
     <select value="test"></select>
