@@ -161,12 +161,12 @@ if (@$_SERVER['QUERY_STRING'])
       </div>
     </div>
     <div>
-      <canvas id="coneResult2" download="test.png"></canvas>
+      <canvas id="coneTemplateInfo" download="test.png"></canvas>
     </div>
     <div>
       <div>Final shape:</div>
       <div class="container">
-        <canvas id="coneResult"></canvas>
+        <canvas id="coneTemplate"></canvas>
       </div>
     </div>
   </div>

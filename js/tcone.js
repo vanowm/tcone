@@ -3,13 +3,21 @@ window.addEventListener("DOMContentLoaded", init);
 
 function init(e)
 {
-  const drawImage = (canvas, d1, d2, h, _lineWidth, strokeColor, fillColor) =>
+  const drawImage = (options) => //canvas, d1, d2, h, _lineWidth, strokeColor, fillColor, patternOnly, fullSize) =>
   {
+    const canvas = options.canvas,
+          d1 = options.top,
+          d2 = options.bottom,
+          h = options.height,
+          _lineWidth = options.lineWidth || lineWidth,
+          backgroundColor = options.background || "transparent",
+          strokeColor = options.stroke || color.stroke,
+          fillColor = options.fill || color.fill,
+          templateOnly = options.templateOnly,
+          dpi = options.dpi;
+
     const data = new Proxy(...(() =>
     {
-      if (!_lineWidth)
-        _lineWidth = lineWidth;
-
       const diameter1 = Math.min(d1, d2),
         diameter2 = Math.max(d1, d2),
         radius1 = diameter1 / 2 /* top radius */ ,
@@ -40,6 +48,7 @@ function init(e)
         l1 = lineLength(...r1Ends),
         l2 = lineLength(...r2Ends),
         l3 = lineLength(r1Ends[0], r1Ends[1], r2Ends[2], r2Ends[3]),
+        bounds = [r2Ends[1] < 0 ? r2 * 2 : l2, isFinite(r2) ? r2 - Math.min(r2Ends[1], r1Ends[1]) : r2Ends[1]],
         data = {
           x: canvas.width / 2,
           y: 0,
@@ -66,6 +75,8 @@ function init(e)
           l3,
           arcEnd,
           lineLength,
+          bounds,
+          dpi,
         },
         handler = {
           /** using proxy object to convert any variables that start with _ to percentatge value and $ = round to 2 decimal places */
@@ -86,7 +97,8 @@ function init(e)
                 let val = target[key];
                 for (let i = 0; i < match.length; i++)
                 {
-                  if (key in target) target[prop] = val = func[match[i]](val);
+                  if (key in target)
+                    target[prop] = val = (val instanceof Array ? val.map(func[match[i]]) : func[match[i]](val));
                 }
               }
             }
@@ -95,25 +107,39 @@ function init(e)
           n2p: new N2P(
             d1 == d2 ?
             Math.max((d1 / 2) * Math.PI * 2, h) :
+            templateOnly ? Math.max(...bounds) :
             Math.max(
               r2,
               r2Ends[1] < 0 ? r2 * 2 : lineLength(...r2Ends),
               r2 - r2Ends[1]
             ),
-            Math.max(canvas.width, canvas.height) - _lineWidth * 2
+            (dpi? Math.max(...bounds.map(s => s * dpi - _lineWidth * 4)) : Math.max(canvas.width, canvas.height)) - _lineWidth * 2
           ),
         };
       return [data, handler];
     })());
-    data.y = Math.min(
-      data.arcEnd(0, 0, data._r1, data.angleRad)[1],
-      data.arcEnd(0, 0, data._r2, data.angleRad, true)[1]
-    );
-    if (data.y < 0)
-      data.y = Math.abs(data.y) + _lineWidth;
-    else
-      data.y = _lineWidth;
+    if (dpi)
+    {
+      canvas.width = data.bounds[0] * data.dpi;
+      canvas.height = data.bounds[1] * data.dpi;
+      canvas.style.width = canvas.width + "px";
+      canvas.style.height = canvas.height + "px";
+    }
+    if (templateOnly)
+    {
+      data.x = canvas.width / 2;
+      data.y = -Math.min(data._r1Ends[1], data._r2Ends[1])+_lineWidth;
 
+// console.log(canvas.width);
+    }
+    else
+    {
+      data.y = Math.min(data._r1Ends[1], data._r2Ends[1]);
+      if (data.y < 0)
+        data.y = Math.abs(data.y) + _lineWidth;
+      else
+        data.y = _lineWidth;
+    }
     const topArcEnds = data.arcEnd(data.x, data.y, data._r1, data.angleRad),
       bottomArcEnds = data.arcEnd(
         data.x,
@@ -128,11 +154,12 @@ function init(e)
     const ctx = canvas.getContext("2d");
     // ctx.fillStyle = color.fill;
     ctx.save();
-    ctx.fillStyle = "transparent";
-    ctx.strokeStyle = strokeColor || color.stroke;
+    ctx.fillStyle = backgroundColor;
+    // ctx.fillStyle = "black";
+    ctx.strokeStyle = strokeColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.lineWidth = _lineWidth;
-    ctx.fillStyle = fillColor || color.fill;
+    ctx.fillStyle = fillColor;
 
     ctx.beginPath();
     if (isFinite(data.r1))
@@ -165,21 +192,24 @@ function init(e)
       ctx.lineTo(bottomArcEnds[0], bottomArcEnds[1]);
       ctx.stroke();
 
-      ctx.beginPath();
-      /* dotted line */
-      ctx.setLineDash([5, 8]);
-      ctx.lineWidth = _lineWidth / 4;
-      ctx.moveTo(topArcEnds[2], topArcEnds[1]);
-      ctx.lineTo(data.x, data.y);
-      ctx.lineTo(topArcEnds[0], topArcEnds[1]);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      if (!templateOnly)
+      {
+        ctx.beginPath();
+        /* dotted line */
+        ctx.setLineDash([5, 8]);
+        ctx.lineWidth = _lineWidth / 4;
+        ctx.moveTo(topArcEnds[2], topArcEnds[1]);
+        ctx.lineTo(data.x, data.y);
+        ctx.lineTo(topArcEnds[0], topArcEnds[1]);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-      /* center mark */
-      ctx.beginPath();
-      ctx.arc(data.x, data.y, 2, 0, Math.PI * 2);
-      ctx.fillStyle = "red";
-      ctx.fill();
+        /* center mark */
+        ctx.beginPath();
+        ctx.arc(data.x, data.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = "red";
+        ctx.fill();
+      }
     }
     else
     {
@@ -212,8 +242,8 @@ function init(e)
     elL4 = document.getElementById("height"),
     elHidden = document.getElementById("hidden"),
     elCanvasCone = document.getElementById("cone"),
-    elCanvasResult = document.getElementById("coneResult"),
-    elCanvasResult2 = document.getElementById("coneResult2"),
+    elCanvasTemplate = document.getElementById("coneTemplate"),
+    elCanvasTemplateInfo = document.getElementById("coneTemplateInfo"),
     elPrecision = document.getElementById("precision"),
     elNavbar = document.getElementById("navbar"),
     elMenuFraction = document.querySelector('[data-type="fraction"]'),
@@ -346,6 +376,12 @@ function init(e)
           value: 16,
           valid: [1, 2, 4, 8, 16, 32, 64, 128],
         },
+
+        dpi:
+        {
+          value: 300,
+        },
+
         f: /* show as fractions */
         {
           value: 1,
@@ -440,7 +476,9 @@ function init(e)
   /** precision dropdown */
   dropdown(elPrecision);
 
-  /*default*/
+/*
+default
+*/
   let prevFocus = elD1,
     prevHighlightHover,
     prevErrD1,
@@ -514,9 +552,6 @@ functions
     el.querySelector('input[type="checkbox"]').checked = false;
   }
   
-/*
-* functions
-*/
   function draw(e)
   {
     // Inputs
@@ -568,10 +603,10 @@ functions
     elCanvasCone.height = canvasHeight;
     elCanvasCone.style.width = canvasWidth + "px";
     elCanvasCone.style.height = canvasHeight + "px";
-    elCanvasResult.width = canvasWidth;
-    elCanvasResult.height = canvasHeight;
-    elCanvasResult.style.width = canvasWidth + "px";
-    elCanvasResult.style.height = canvasHeight + "px";
+    elCanvasTemplate.width = canvasWidth;
+    elCanvasTemplate.height = canvasHeight;
+    elCanvasTemplate.style.width = canvasWidth + "px";
+    elCanvasTemplate.style.height = canvasHeight + "px";
     ctxCone.strokeStyle = color.stroke;
     ctxCone.fillStyle = "transparent";
     //   ctx.fillStyle = color.fill;
@@ -758,7 +793,8 @@ functions
     ctxCone.stroke();
 
     /* generate preview */
-    const data = drawImage(elCanvasResult, d1, d2, h, lineWidth);
+    const data = drawImage({canvas: elCanvasTemplate, top: d1, bottom: d2, height: h, lineWidth: lineWidth, templateOnly: false});
+
     /* generate DXF */
     const DXF = require("Drawing"),
       dxf = new DXF(),
@@ -814,19 +850,44 @@ functions
         true
       );
 
-    const link = document.getElementById("dxf");
-    link.setAttribute(
-      "download",
-      `cone_template_${data.$diameter1}x${data.$diameter2}x${data.$h}.dxf`
-    );
-    link.href = URL.createObjectURL(
-      new Blob([dxf.toDxfString()],
+    setTimeout(() =>
+    {
+      const link = document.getElementById("dxf");
+      link.setAttribute(
+        "download",
+        `cone_template_${data.$diameter1}x${data.$diameter2}x${data.$h}.dxf`
+      );
+      link.href = URL.createObjectURL(
+        new Blob([dxf.toDxfString()],
+        {
+          type: "application/dxf",
+        })
+      );
+    });
+
+    /* generate PNG */
+
+    setTimeout(() =>
+    {
+      const canvas = document.createElement("canvas"),
+            pngData = drawImage({canvas, top: d1, bottom: d2, height: h, lineWidth: lineWidth, stroke: "black", background: "white", fill: "transparent", templateOnly: true, dpi: settings.dpi}),
+            link = document.getElementById("png");
+
+      if (link._prev && link._prev.d1 == d1 && link._prev.d2 == d2 && link._prev.h == h)
+        return;
+
+      link._prev = {d1, d2, h};
+      link.removeAttribute("download");
+      link.removeAttribute("href");
+      canvas.toBlob(blob =>
       {
-        type: "application/dxf",
-      })
-    );
-    clearTimeout(link.timer);
-    //  link.timer = setTimeout( link.click.bind(link), 2000);
+        if (!blob)
+          return;
+
+        link.setAttribute("download", `cone_template_${data.$diameter1}x${data.$diameter2}x${data.$h}_(300dpi).png`);
+        link.href = URL.createObjectURL(blob);
+      });
+    });
     const angle = round(toDegree(data.angleRad));
 
     showValue(elR1, data.r1, data.$r1);
@@ -838,27 +899,26 @@ functions
     showValue(elAngle, angle ? angle + "°" : NaN, angle ? round(data.angleRad) + " radians" : NaN, false);
 
     /* mock-up */
-    const ctxR2 = elCanvasResult2.getContext("2d"),
-      resStyle = window.getComputedStyle(elCanvasResult2);
+    const ctxR2 = elCanvasTemplateInfo.getContext("2d"),
+      resStyle = window.getComputedStyle(elCanvasTemplateInfo);
 
-    elCanvasResult2.width = parseFloat(resStyle.getPropertyValue("--width"));
-    elCanvasResult2.height = parseFloat(resStyle.getPropertyValue("--height"));
-    elCanvasResult2.style.width = elCanvasResult2.width + "px";
-    elCanvasResult2.style.height = elCanvasResult2.height + "px";
+    elCanvasTemplateInfo.width = parseFloat(resStyle.getPropertyValue("--width"));
+    elCanvasTemplateInfo.height = parseFloat(resStyle.getPropertyValue("--height"));
+    elCanvasTemplateInfo.style.width = elCanvasTemplateInfo.width + "px";
+    elCanvasTemplateInfo.style.height = elCanvasTemplateInfo.height + "px";
     arrow = new Arrow(ctxR2);
 
     ctxR2.translate(7, 0);
     ctxR2.font = resStyle.fontWeight + " " + resStyle.fontSize + " " + resStyle.fontFamily;
     ctxR2.textAlign = "center";
-    const d = drawImage(
-      elCanvasResult2,
-      1,
-      2,
-      4,
-      lineWidth,
-      color.stroke,
-      "transparent"
-    );
+    const d = drawImage({canvas: elCanvasTemplateInfo,
+      top: 1,
+      bottom: 2,
+      height: 4,
+      lineWidth: lineWidth,
+      stroke: color.stroke,
+      fill: "transparent"
+    });
     ctxR2.lineWidth = 0.25;
     ctxR2.strokeStyle = color.stroke;
     ctxR2.fillStyle = color.stroke;
@@ -976,7 +1036,7 @@ functions
     if (!errD1) settings.t = d1Value;
     if (!errD2) settings.b = d2Value;
     if (!errH) settings.h = hValue;
-    elCanvasResult2.dataset.type = settings.f;
+    elCanvasTemplateInfo.dataset.type = settings.f;
   }
 
   function Arrow(ctx, options)
@@ -1027,7 +1087,7 @@ functions
       {
         ctx.save();
         const ca = ctx.globalAlpha,
-              resStyle = window.getComputedStyle(elCanvasResult2);
+              resStyle = window.getComputedStyle(elCanvasTemplateInfo);
         let text = el.querySelector("span" + (settings.f || el.id == "angle" ? "" : ":nth-of-type(2)")).textContent.replace(/[()]/g,''),
             text2 = el.querySelector("label > label").textContent;
 
@@ -1221,12 +1281,10 @@ functions
     {
       if (!children[i]) continue;
 
-      const val =
-        i || args[args.length - 1] === false ?
-        args[i] :
-        fractionFormat(fractionLimit(args[i], precision), args[i]);
+      const val = i || args[args.length - 1] === false ? args[i] : fractionFormat(fractionLimit(args[i], precision), args[i]);
       na = isNan(val);
-      if (na) el.classList.add("na");
+      if (na)
+        el.classList.add("na");
 
       children[i].classList.toggle("na", na);
       children[i].innerHTML = i ? "(" + f(val) + ")" : f(val);
@@ -1236,9 +1294,7 @@ functions
   function inputWidth(el)
   {
     for (let i = 0, style = getComputedStyle(el); i < style.length; i++)
-      elHidden.style[style[i]] = style[i].match(/color/i) ?
-      "transparent" :
-      style[style[i]];
+      elHidden.style[style[i]] = style[i].match(/color/i) ? "transparent" : style[style[i]];
 
     elHidden.style.padding = "0.5em";
     elHidden.textContent = el.value;
@@ -1544,16 +1600,16 @@ functions
     //   e.preventDefault();
   }, true);
 
-  elCanvasResult2.addEventListener("click", e =>
+  elCanvasTemplateInfo.addEventListener("click", e =>
   {
     const f = settings.f;
-    settings.f = ~~!~~elCanvasResult2.dataset.type;
+    settings.f = ~~!~~elCanvasTemplateInfo.dataset.type;
     draw(true);
     settings.f = f;
     e.preventDefault();
   });
 
-  elCanvasResult2.addEventListener("dblclick", e =>
+  elCanvasTemplateInfo.addEventListener("dblclick", e =>
   {
     e.preventDefault();
   });

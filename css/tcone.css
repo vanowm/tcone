@@ -386,7 +386,7 @@ nav > .close-overlay {
   display: block;
 }
 
-#coneResult2 {
+#coneTemplateInfo {
   --width: 340px;
   --height: 390px;
   font-size: 1em;
@@ -421,6 +421,7 @@ nav > .close-overlay {
   font-style: italic;
   font-size: 0.8em;
   opacity: 0.2;
+  cursor: default;
 }
 
 .download > *[href]
