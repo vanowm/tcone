@@ -128,6 +128,7 @@ if (@$_SERVER['QUERY_STRING'])
   <script src="https://threejs.org/build/three.min.js"></script>
   <script src="<?= getfile("js/fraction.js"); ?>"></script>
   <script src="<?= getfile("js/dxf.js"); ?>"></script>
+  <script src="<?= getfile("js/dpi.js"); ?>"></script>
   <script src="<?= getfile("js/tcone.js"); ?>"></script>
   <link rel="stylesheet" media="screen" href="<?= getfile("css/tcone.css") ?>">
 </head>
@@ -177,16 +178,28 @@ if (@$_SERVER['QUERY_STRING'])
       <label for="main-menu" class="close-overlay" title=""></label>
       <div class="menu popup">
         <header>Options</header>
-        <label data-type="fraction" class="value toggle" title="Show as fractions">Show as fractions: <span class="options"><span>off</span><span>on</span>
-          </span></label>
+        <label data-type="fraction" class="value toggle" title="Show as fractions">Show as fractions: <span class="options"><span>off</span><span>on</span></span></label>
         <div class="precision">
           Precision:
-          <span id="precision" class="dropdown">
+          <span id="precision" class="dropdown-box" data-setting="p">
             <div class="dropdown">
               <input id="precision-dropdown" type="checkbox" data-popup="dropdown">
               <label for="precision-dropdown" class="close-overlay" title="" data-type="precision"></label>
               <label for="precision-dropdown" class="dropdown-list">
                 <ul></ul>
+              </label>
+            </div>
+          </span>
+        </div>
+        <div class="dpi">
+          Image DPI:
+          <span id="dpi" class="dropdown-box" data-setting="dpi">
+            <div class="dropdown">
+              <input id="dpi-dropdown" type="checkbox" data-popup="dropdown">
+              <label for="dpi-dropdown" class="close-overlay" title="" data-type="dpi"></label>
+              <label for="dpi-dropdown" class="dropdown-list">
+                <ul>
+                </ul>
               </label>
             </div>
           </span>

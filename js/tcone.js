@@ -1,6 +1,5 @@
 //jshint -W018,-W014, esversion:9
 window.addEventListener("DOMContentLoaded", init);
-
 function init(e)
 {
   const drawImage = (options) => //canvas, d1, d2, h, _lineWidth, strokeColor, fillColor, patternOnly, fullSize) =>
@@ -113,7 +112,7 @@ function init(e)
               r2Ends[1] < 0 ? r2 * 2 : lineLength(...r2Ends),
               r2 - r2Ends[1]
             ),
-            (dpi? Math.max(...bounds.map(s => s * dpi - _lineWidth * 4)) : Math.max(canvas.width, canvas.height)) - _lineWidth * 2
+            (dpi ? Math.max(...bounds.map(s => s * dpi - _lineWidth)) : Math.max(canvas.width, canvas.height)) - _lineWidth * 2
           ),
         };
       return [data, handler];
@@ -128,9 +127,7 @@ function init(e)
     if (templateOnly)
     {
       data.x = canvas.width / 2;
-      data.y = -Math.min(data._r1Ends[1], data._r2Ends[1])+_lineWidth;
-
-// console.log(canvas.width);
+      data.y = -Math.min(data._r1Ends[1], data._r2Ends[1]);
     }
     else
     {
@@ -140,6 +137,7 @@ function init(e)
       else
         data.y = _lineWidth;
     }
+
     const topArcEnds = data.arcEnd(data.x, data.y, data._r1, data.angleRad),
       bottomArcEnds = data.arcEnd(
         data.x,
@@ -213,12 +211,12 @@ function init(e)
     }
     else
     {
-      ctx.rect(
-        data.topArcEnds[0] - data.x + 1,
-        data.topArcEnds[1] - data.y + 1,
-        data._circumference1,
-        data._h
-      );
+      const x = data.topArcEnds[0] - data.x + _lineWidth/2,
+            y = data.topArcEnds[1] - data.y + _lineWidth/2,
+            w = data._circumference1,
+            h = data._h;
+
+      ctx.rect(x, y, w, h);
       ctx.fill();
       ctx.stroke();
     }
@@ -245,6 +243,7 @@ function init(e)
     elCanvasTemplate = document.getElementById("coneTemplate"),
     elCanvasTemplateInfo = document.getElementById("coneTemplateInfo"),
     elPrecision = document.getElementById("precision"),
+    elDpi = document.getElementById("dpi"),
     elNavbar = document.getElementById("navbar"),
     elMenuFraction = document.querySelector('[data-type="fraction"]'),
     elResult = document.getElementById("result"),
@@ -300,7 +299,17 @@ function init(e)
               }),
               {}
             );
-
+        if (name == "valid")
+        return Object.keys(this.default)
+          .reduce(
+            (a, v) => (
+            {
+              ...a,
+              [v]: this.default[v].valid
+            }),
+            {}
+          );
+  
         return name in target ? target[name] : this.default[name] && this.default[name].value;
       },
       set: function (target, name, value)
@@ -380,6 +389,7 @@ function init(e)
         dpi:
         {
           value: 300,
+          valid: [96, 150, 300],
         },
 
         f: /* show as fractions */
@@ -476,7 +486,10 @@ function init(e)
   /** precision dropdown */
   dropdown(elPrecision);
 
-/*
+  /** DPI dropdown */
+  dropdown(elDpi);
+
+  /*
 default
 */
   let prevFocus = elD1,
@@ -520,22 +533,33 @@ functions
   function dropdown(el)
   {
     const elDropdown = el.querySelector(".dropdown-list"),
-      elUl = el.querySelector("ul"),
-      elOption = document.createElement("li");
+          elUl = el.querySelector("ul"),
+          elOption = document.createElement("li"),
+          setting = el.dataset.setting;
 
     let placeholder;
-    for (let i = 1, val = 1, max = 0, o; i < 9; i++)
+    for (let i = 0, val = 1, max = 0, o; i < settings.valid[el.dataset.setting].length; i++)
     {
-      val = i > 1 ? val * 2 : i;
-      o = elUl.children[i-1] || elOption.cloneNode(true);
-      o.classList.toggle("default", val == settings.default.p);
+      o = elUl.children[i] || elOption.cloneNode(true);
+      if (el.id == "precision")
+      {
+        val = i ? val * 2 : i+1;
+        o.textContent = !i ? "Round" : "1⁄" + val;
+      }
+      else
+      {
+        val = settings.valid[el.dataset.setting][i];
+        o.textContent = val;
+      }
       o.value = val;
-      o.textContent = i == 1 ? "Round" : "1⁄" + val;
+      selected = settings[setting] == val;
+      o.classList.toggle("default", val == settings.default[setting]);
       o.classList.add("option");
-      selected = settings.p == val;
       o.classList.toggle("selected", selected);
-      if (!elUl.children[i-1])
+      if (!elUl.children[i])
+      {
         elUl.appendChild(o);
+      }
 
       if (selected)
         elDropdown.dataset.value = o.textContent;
@@ -548,7 +572,7 @@ functions
       }
     }
     elUl.parentNode.parentNode.dataset.placeholder = placeholder;
-    el.value = settings.p;
+    el.value = settings[setting];
     el.querySelector('input[type="checkbox"]').checked = false;
   }
   
@@ -571,9 +595,7 @@ functions
       d2 = errD2 ? prevD2Frac.valueOf() : D2.valueOf(),
       h = errH ? prevHFrac.valueOf() : H.valueOf();
 
-    if (
-      e !== true &&
-      !(
+    if (e !== true && !(
         settings.t != d1 ||
         settings.b != d2 ||
         settings.h != h ||
@@ -792,102 +814,100 @@ functions
     ctxCone.ellipse(_x, _h - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI); //bottom ellipse close side
     ctxCone.stroke();
 
-    /* generate preview */
+    // . generate preview .
     const data = drawImage({canvas: elCanvasTemplate, top: d1, bottom: d2, height: h, lineWidth: lineWidth, templateOnly: false});
 
-    /* generate DXF */
-    const DXF = require("Drawing"),
-      dxf = new DXF(),
-      toRadians = ang => (ang * Math.PI) / 180,
-      toDegree = ang => (ang * 180) / Math.PI,
-      arcStartAngle = toRadians(270 - data.angleDeg / 2),
-      arcEndAngle = toRadians(270 + data.angleDeg / 2),
-      dxfArcEnd = radius => [
-        Math.cos(arcStartAngle) * radius,
-        Math.sin(arcStartAngle) * radius,
-        Math.cos(arcEndAngle) * radius,
-        Math.sin(arcEndAngle) * radius,
-      ],
-      r1e = dxfArcEnd(data.r1),
-      r2e = dxfArcEnd(data.r2);
-    dxf.generateAutocadExtras();
-    dxf.header("ACADVER", [
-      [1, "AC1500"]
-    ]);
-    const //vY = -(data.r2 - r2e[1] + r1e[1])/2,
-      vY = -(
-        4 *
-        Math.sin(data.angleRad / 2) *
-        (Math.pow(data.r2, 3) - Math.pow(data.r1, 3))
-      ) /
-      (3 * data.angleRad * (data.r2 * data.r2 - data.r1 * data.r1)),
-      vW =
-      r2e[1] > 0 ?
-      data.r2 * 2 :
-      Math.max(
-        data.lineLength(...r2e),
-        data.r2 - (data.r2 - Math.abs(r1e[1]))
-      );
-
-    dxf.viewport(
-      d1 == d2 ? data.circumference1 / 2 : 0,
-      d1 == d2 ? h / 2 : vY,
-      d1 == d2 ? data.circumference1 / 1.5 : vW
-    );
-    dxf.setUnits("Inches");
-    if (d1 == d2)
-    {
-      dxf.drawRect(0, 0, data.circumference1, h);
-    }
-    else
-      dxf.drawPolyline(
-        [
-          [r2e[0], r2e[1], Math.tan(data.angleRad / 4)],
-          [r2e[2], r2e[3]],
-          [r1e[2], r1e[3], -Math.tan(data.angleRad / 4)],
-          [r1e[0], r1e[1]],
-        ],
-        true
-      );
-
-    setTimeout(() =>
+    // . generate DXF .
+    !function()
     {
       const link = document.getElementById("dxf");
-      link.setAttribute(
-        "download",
-        `cone_template_${data.$diameter1}x${data.$diameter2}x${data.$h}.dxf`
-      );
-      link.href = URL.createObjectURL(
-        new Blob([dxf.toDxfString()],
-        {
-          type: "application/dxf",
-        })
-      );
-    });
-
-    /* generate PNG */
-
-    setTimeout(() =>
-    {
-      const canvas = document.createElement("canvas"),
-            pngData = drawImage({canvas, top: d1, bottom: d2, height: h, lineWidth: lineWidth, stroke: "black", background: "white", fill: "transparent", templateOnly: true, dpi: settings.dpi}),
-            link = document.getElementById("png");
-
       if (link._prev && link._prev.d1 == d1 && link._prev.d2 == d2 && link._prev.h == h)
         return;
 
       link._prev = {d1, d2, h};
+      const DXF = require("Drawing"),
+            dxf = new DXF(),
+            arcStartAngle = toRadians(270 - data.angleDeg / 2),
+            arcEndAngle = toRadians(270 + data.angleDeg / 2),
+            dxfArcEnd = radius => [
+              Math.cos(arcStartAngle) * radius,
+              Math.sin(arcStartAngle) * radius,
+              Math.cos(arcEndAngle) * radius,
+              Math.sin(arcEndAngle) * radius,
+            ],
+            r1e = dxfArcEnd(data.r1),
+            r2e = dxfArcEnd(data.r2);
+
+      dxf.generateAutocadExtras();
+      dxf.header("ACADVER", [
+        [1, "AC1500"]
+      ]);
+      const //vY = -(data.r2 - r2e[1] + r1e[1])/2,
+            vY = -(4 * Math.sin(data.angleRad / 2) * (Math.pow(data.r2, 3) - Math.pow(data.r1, 3))) / (3 * data.angleRad * (data.r2 * data.r2 - data.r1 * data.r1)),
+            vW = r2e[1] > 0 ? data.r2 * 2 : Math.max(data.lineLength(...r2e), data.r2 - (data.r2 - Math.abs(r1e[1])));
+
+      dxf.viewport(
+        d1 == d2 ? data.circumference1 / 2 : 0,
+        d1 == d2 ? h / 2 : vY,
+        d1 == d2 ? data.circumference1 / 1.5 : vW
+      );
+      dxf.setUnits("Inches");
+      if (d1 == d2)
+      {
+        dxf.drawRect(0, 0, data.circumference1, h);
+      }
+      else
+        dxf.drawPolyline(
+          [
+            [r2e[0], r2e[1], Math.tan(data.angleRad / 4)],
+            [r2e[2], r2e[3]],
+            [r1e[2], r1e[3], -Math.tan(data.angleRad / 4)],
+            [r1e[0], r1e[1]],
+          ],
+          true
+        );
+
+      setTimeout(() =>
+      {
+        link.setAttribute(
+          "download",
+          `cone_template_${data.$diameter1}x${data.$diameter2}x${data.$h}.dxf`
+        );
+        link.href = URL.createObjectURL(
+          new Blob([dxf.toDxfString()],
+          {
+            type: "application/dxf",
+          })
+        );
+      });
+      }();
+
+    // . generate PNG .
+    !function()
+    {
+      const link = document.getElementById("png");
+      if (link._prev && link._prev.d1 == d1 && link._prev.d2 == d2 && link._prev.h == h && link._prev.dpi == settings.dpi)
+        return;
+
+      link._prev = {d1, d2, h, dpi: settings.dpi};
       link.removeAttribute("download");
       link.removeAttribute("href");
-      canvas.toBlob(blob =>
+      setTimeout(() =>
       {
-        if (!blob)
-          return;
+        const canvas = document.createElement("canvas");
+        drawImage({canvas, top: d1, bottom: d2, height: h, lineWidth: 1, stroke: "black", background: "white", fill: "transparent", templateOnly: true, dpi: settings.dpi});
 
-        link.setAttribute("download", `cone_template_${data.$diameter1}x${data.$diameter2}x${data.$h}_(300dpi).png`);
-        link.href = URL.createObjectURL(blob);
+        canvas.toBlob(blob =>
+        {
+          if (!blob)
+            return;
+
+          link.setAttribute("download", `cone_template_${data.$diameter1}x${data.$diameter2}x${data.$h}_(${settings.dpi}dpi).png`);
+          changeDpiBlob(blob, settings.dpi).then(blob => link.href = URL.createObjectURL(blob));
+        });
       });
-    });
+    }();
+  
     const angle = round(toDegree(data.angleRad));
 
     showValue(elR1, data.r1, data.$r1);
@@ -1037,6 +1057,16 @@ functions
     if (!errD2) settings.b = d2Value;
     if (!errH) settings.h = hValue;
     elCanvasTemplateInfo.dataset.type = settings.f;
+  }
+
+  function toRadians(ang)
+  {
+    return (ang * Math.PI) / 180;
+  }
+
+  function toDegree (ang)
+  {
+    return (ang * 180) / Math.PI;
   }
 
   function Arrow(ctx, options)
@@ -1320,9 +1350,10 @@ functions
     return n => (n * size) / max || 0;
   }
 
-  function round(n)
+  function round(n, d)
   {
-    return Math.round(n * 100) / 100;
+    d = Math.pow(10, d || 2);
+    return Math.round(n * d) / d;
   }
 
   function fractionLimit(num, denominator)
@@ -1635,6 +1666,19 @@ functions
     }
     dropdown(elPrecision);
     closeMenu("precision");
+    draw(true);
+    e.preventDefault();
+  });
+
+  elDpi.addEventListener("click", e =>
+  {
+    if (!e.target.classList.contains("option"))
+      return;
+
+    const dpi = ~~e.target.value;
+    settings.dpi = dpi;
+    dropdown(elDpi);
+    closeMenu("dpi");
     draw(true);
     e.preventDefault();
   });

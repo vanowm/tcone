@@ -197,7 +197,7 @@ label.toggle > .options > *
   margin-left: 0.3em;
 }
 
-#precision {
+.dropdown-box {
   /* position: absolute; */
   /* z-index: 1; */
   /* left: 0; */
@@ -214,6 +214,7 @@ label.toggle > .options > *
   /* white-space: nowrap; */
 }
 
+.dropdown:not(.precision) .option,
 .precision .option:first-child
 {
   font-size: 1em;
@@ -242,7 +243,7 @@ label.toggle > .options > *
   background-color: Menu;
   width: 100%;
   font-family: inherit;
-  z-index: 1;
+  /* z-index: 1; */
   overflow: inherit;
   white-space: inherit;
   height: unset;
@@ -261,6 +262,11 @@ label.toggle > .options > *
 .dropdown input[type="checkbox"]:checked ~ .dropdown-list > ul {
   border: 1px solid #7f7f7f7f;
   height: max-content;
+  z-index: 2;
+}
+
+.dropdown input[type="checkbox"]:checked ~ .dropdown-list {
+  z-index: 2;
 }
 
 .dropdown input[type="checkbox"]:checked ~ .dropdown-list::after {
@@ -333,6 +339,7 @@ nav > .close-overlay {
   display: block;
   padding: 0 1.5em 0 0.5em;
   text-align: center;
+  min-width: 2.5em;
 }
 
 .dropdown[data-placeholder]:before {
@@ -371,6 +378,7 @@ nav > .close-overlay {
   font-size: 1.2em;
   white-space: nowrap;
   border: 1px solid transparent;
+  min-width: 4.5em;
 }
 
 .dropdown input[type="checkbox"]:not(:checked) ~ .dropdown-list .option {
