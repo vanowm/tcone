@@ -1,28 +1,25 @@
 :root {
   --size: 350px;
-  --labelColor: #0056d6;
-  /* any */
-  --arrowHeadSize: 8;
-  /* number */
-  --arrowHeadWidth: ;
-  /* number */
-  --arrowHeadClosed: false;
-  /* true/false */
-  --arrowLineWidth: ;
-  /* number */
-  --arrowFill: true;
-  /* true/false */
-  --arrowColor: ;
-  /* any */
-  --arrowColorError: ;
-  /* any */
+  --labelColor: #0268ff;      /* any */ /*-- light theme */
+  --labelColorDark: #67a4ff;  /* any */ /*-- dark theme */
+  --arrowHeadSize: 8;           /* number */
+  --arrowHeadWidth: ;           /* number */
+  --arrowHeadClosed: false;     /* true/false */
+  --arrowLineWidth: ;           /* number */
+  --arrowFill: true;            /* true/false */
+  --arrowColor: ;               /* any */
+  --arrowColorError: ;          /* any */
+  --textColor: CanvasText;
+  --backgroundColor: Canvas;
+  color-scheme: light dark;
   color-scheme: normal dark;
   /* background-color: green; */
   font-family: "Segoe UI", Arial, Tahoma, Geneva, Verdana, sans-serif;
 }
+
 @media (prefers-color-scheme: dark) {
-  :root {
-   --labelColor: #67a4ff;
+  :root:not([theme="light"]) {
+   --labelColor: var(--labelColorDark);
  }
 }
 
@@ -45,7 +42,7 @@
 
 :root[theme="dark"] {
   color-scheme: dark;
-  --labelColor: #67a4ff;
+  --labelColor: var(--labelColorDark);
 }
 
 :root[theme="light"] {
@@ -63,7 +60,7 @@ body {
   transition: opacity 0.1s;
 }
 
-:root:not(.inited)>body {
+:root[notinited] > body {
   opacity: 0;
 }
 
@@ -72,7 +69,7 @@ body {
   flex-wrap: wrap;
 }
 
-.content>* {
+.content > * {
   margin: 1.5em 0.5em;
 }
 
@@ -205,19 +202,9 @@ label.toggle > .options > *
   margin-left: 0.2em;
 }
 
-.precision {
-  /* line-height: 2em; */
-  /* display: block; */
-  /* grid-auto-columns: max-content; */
-  /* width: 10em; */
-  /* width: fit-content; */
-  /* white-space: nowrap; */
-}
-
-.dropdown:not(.precision) .option,
-.precision .option:first-child
+[data-setting="p"] .option:not(:first-child)
 {
-  font-size: 1em;
+  font-size: 1.1em;
 }
 
 .dropdown {
@@ -226,8 +213,9 @@ label.toggle > .options > *
   /* width: 100%; */
   display: -ms-inline-grid;
   display: inline-grid;
-  background-color: menu;
-  color: menutext;
+  background-color: -moz-dialog;
+  background-color: Menu;
+  color: MenuText;
 }
 
 .dropdown-list {
@@ -240,6 +228,8 @@ label.toggle > .options > *
   padding: 0;
   cursor: pointer;
   color: MenuText;
+  color: -moz-DialogText;
+  background-color: -moz-Dialog;
   background-color: Menu;
   width: 100%;
   font-family: inherit;
@@ -362,10 +352,10 @@ nav > .close-overlay {
   content: "(Default)";
   font-style: italic;
   font-size: 0.5em;
-  color: graytext;
+  color: GrayText;
   /* float: right; */
   /* margin-left: 1em; */
-  opacity: 0.5;
+  /* opacity: 0.5; */
   font-weight: normal;
   /* display: inline-block; */
   position: absolute;
@@ -375,7 +365,6 @@ nav > .close-overlay {
 .dropdown-list .option {
   padding: 0.3em;
   display: flex;
-  font-size: 1.2em;
   white-space: nowrap;
   border: 1px solid transparent;
   min-width: 4.5em;
@@ -464,7 +453,9 @@ nav > input
   margin: 0;
   min-width: 8em;
   background-color: Menu;
+  background-color: -moz-Dialog;
   color: MenuText;
+  color: -moz-DialogText;
   /* z-index: 2; */
   position: absolute;
   top: 10px;
@@ -490,7 +481,7 @@ nav > input
   padding: 0.5em 1.5em 0.5em 1.5em;
   display: block;
 }
-.menu > [data-type]
+.menu > [data-type]:not([data-type="dropdown"])
 {
   cursor: pointer;
 }
@@ -511,12 +502,12 @@ nav > input
   background-color: rgba(127, 127, 127, 0.5);
 }
 
-nav>input:checked~.close-overlay
+nav > input:checked ~ .close-overlay
 {
   display: block;
 }
 
-nav>input:not(:checked)~ div.menu
+nav > input:not(:checked) ~ div.menu
 {
   /* display: none; */
   top: -100%;
@@ -543,7 +534,7 @@ nav>input:not(:checked)~ div.menu
 }
 
 .navicon {
-  background-color: CanvasText;
+  background-color: var(--textColor);
   display: block;
   height: 0.1em;
   width: 100%;
@@ -577,20 +568,22 @@ nav>input:not(:checked)~ div.menu
 
 #main-menu:checked ~ * .navicon:before
 {
-  transform: rotate(-45deg);
+  background-color: MenuText;
+  transform: rotate(-135deg);
   top: 0;
   right: 0;
 }
 
 #main-menu:checked ~ * .navicon:after
 {
-  transform: rotate(45deg);
+  background-color: MenuText;
+  transform: rotate(135deg);
   top: 0;
   right: 0;
 }
 
 .navicon:before, .navicon:after {
-  background-color: CanvasText;
+  background-color: var(--textColor);
   display: block;
   width: 100%;
   height: 100%;
@@ -633,4 +626,16 @@ label.toggle[value="5"] .options > :nth-child(6)
 .font08
 {
   font-size: 0.8em;
+}
+
+:root:not(.hasDark) [data-setting="d"]
+{
+  display: none;
+}
+@supports not(color-scheme: dark)
+{
+  [data-setting="d"]
+  {
+    display: none;
+  }
 }

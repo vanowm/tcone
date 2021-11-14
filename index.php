@@ -110,13 +110,14 @@ if (@$_SERVER['QUERY_STRING'])
 }
 ?>
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="en-US" notinited>
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Truncated cone calculator">
+  <meta name="description" content="Truncated cone (frustum) calculator">
   <meta name="color-scheme" content="light dark">
+  <title>Truncated Cone Calculator</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="alternate icon" href="/favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon-apple-touch-icon.png">
@@ -124,13 +125,11 @@ if (@$_SERVER['QUERY_STRING'])
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="manifest" href="/favicon-site.webmanifest">
   <link rel="mask-icon" href="/favicon-safari-pinned-tab.svg" color="#000000">
-  <title>Truncated Cone Calculator</title>
-  <script src="https://threejs.org/build/three.min.js"></script>
+  <link rel="stylesheet" media="screen" href="<?= getfile("css/tcone.css") ?>">
   <script src="<?= getfile("js/fraction.js"); ?>"></script>
   <script src="<?= getfile("js/dxf.js"); ?>"></script>
   <script src="<?= getfile("js/dpi.js"); ?>"></script>
   <script src="<?= getfile("js/tcone.js"); ?>"></script>
-  <link rel="stylesheet" media="screen" href="<?= getfile("css/tcone.css") ?>">
 </head>
 
 <body>
@@ -178,33 +177,10 @@ if (@$_SERVER['QUERY_STRING'])
       <label for="main-menu" class="close-overlay" title=""></label>
       <div class="menu popup">
         <header>Options</header>
+        <div data-setting="p" data-type="dropdown" title="Precision">Precision:</div>
+        <div data-setting="dpi" data-type="dropdown" title="Image (print) DPI">Image DPI:</div>
         <label data-type="fraction" class="value toggle" title="Show as fractions">Show as fractions: <span class="options"><span>off</span><span>on</span></span></label>
-        <div class="precision">
-          Precision:
-          <span id="precision" class="dropdown-box" data-setting="p">
-            <div class="dropdown">
-              <input id="precision-dropdown" type="checkbox" data-popup="dropdown">
-              <label for="precision-dropdown" class="close-overlay" title="" data-type="precision"></label>
-              <label for="precision-dropdown" class="dropdown-list">
-                <ul></ul>
-              </label>
-            </div>
-          </span>
-        </div>
-        <div class="dpi">
-          Image DPI:
-          <span id="dpi" class="dropdown-box" data-setting="dpi">
-            <div class="dropdown">
-              <input id="dpi-dropdown" type="checkbox" data-popup="dropdown">
-              <label for="dpi-dropdown" class="close-overlay" title="" data-type="dpi"></label>
-              <label for="dpi-dropdown" class="dropdown-list">
-                <ul>
-                </ul>
-              </label>
-            </div>
-          </span>
-        </div>
-        <label data-type="theme" class="value toggle" title="Theme">Dark theme: <span class="options"><span>off</span><span>on</span><span>auto</span></span></label>
+        <div data-setting="d" data-type="dropdown" title="Theme">Theme:</div>
         <label data-type="reset" class="value right font08" title="Reset all">Reset all</label>
       </div>
       <label for="main-menu" class="menu-icon" title="Menu">
