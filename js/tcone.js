@@ -163,17 +163,17 @@ function init(e)
     }
 
     const topArcEnds = data.arcEnd(data.x, data.y, data._r1, data.angleRad),
-      bottomArcEnds = data.arcEnd(
-        data.x,
-        data.y,
-        data._r2,
-        data.angleRad,
-        true
-      );
+          bottomArcEnds = data.arcEnd(
+            data.x,
+            data.y,
+            data._r2,
+            data.angleRad,
+            true
+          ),
+          ctx = canvas.getContext("2d");
 
     data.topArcEnds = topArcEnds;
     data.bottomArcEnds = bottomArcEnds;
-    const ctx = canvas.getContext("2d");
     // ctx.fillStyle = color.fill;
     ctx.save();
     ctx.fillStyle = backgroundColor;
@@ -281,12 +281,11 @@ function init(e)
           {
             for (let i in this.default)
             {
-              if (!this.default[i].valid) continue;
+              if (!this.default[i].valid)
+                continue;
 
-              if (
-                Array.isArray(this.default[i].valid) &&
-                this.default[i].valid.indexOf(target[i]) == -1
-              )
+              if (Array.isArray(this.default[i].valid)
+                 && this.default[i].valid.indexOf(target[i]) == -1)
               {
                 delete target[i];
               }
@@ -315,41 +314,25 @@ function init(e)
 
             if (name == "default")
               return Object.keys(this.default).reduce(
-                  (a, v) => (
-                  {
-                    ...a,
-                    [v]: this.default[v].value
-                  }),
+                  (a, v) => ({...a, [v]: this.default[v].value}),
                   {}
                 );
 
             if (name == "valid")
               return Object.keys(this.default).reduce(
-                (a, v) => (
-                {
-                  ...a,
-                  [v]: this.default[v].valid
-                }),
+                (a, v) => ({...a, [v]: this.default[v].valid}),
                 {}
               );
 
             if (name == "names")
               return Object.keys(this.default).reduce(
-                (a, v) => (
-                {
-                  ...a,
-                  [v]: this.default[v].names
-                }),
+                (a, v) => ({...a, [v]: this.default[v].names}),
                 {}
               );
 
             if (name == "onChange")
               return Object.keys(this.default).reduce(
-                (a, v) => (
-                {
-                  ...a,
-                  [v]: this.default[v].onChange
-                }),
+                (a, v) => ({...a, [v]: this.default[v].onChange}),
                 {}
               );
 
@@ -459,10 +442,9 @@ function init(e)
         }),
         color = new Proxy({},
         {
-          theme: settings.d == 2 ?
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)")
-            .matches : settings.d,
+          theme: settings.d == 2
+                  ? window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+                  : settings.d,
           colors:
           {
             get stroke()
@@ -482,13 +464,12 @@ function init(e)
           },
           set: function (target, name, value)
           {
-            if (name == "theme") this.theme = ~~value;
+            if (name == "theme")
+              this.theme = ~~value;
           },
           get: function (target, name)
           {
-            return name == "theme" ?
-              this.theme :
-              this.colors[name][~~this.theme];
+            return name == "theme" ? this.theme : this.colors[name][~~this.theme];
           },
         }),
         fractions = (() =>
@@ -513,16 +494,13 @@ function init(e)
             "⅙": "1/6",
             "⅚": "5/6",
           };
-          return Object.keys(o)
-            .reduce((o, a) =>
-            {
-              o[o[a]] = a;
-              return o;
-            }, o);
+          return Object.keys(o).reduce((o, a) =>
+          {
+            o[o[a]] = a;
+            return o;
+          }, o);
         })(),
-        fractionGlyphs = Object.keys(fractions)
-        .filter(a => a.length < 2)
-        .join(""),
+        fractionGlyphs = Object.keys(fractions).filter(a => a.length < 2).join(""),
         fractionFilter = new RegExp("[" + fractionGlyphs + "]", "g"),
         canvasWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--size")),
         canvasHeight = canvasWidth,
@@ -543,17 +521,17 @@ function init(e)
 
 //--------------------------------[ defaults ]------------------------------------
   let prevFocus = elD1,
-    prevHighlightHover,
-    prevErrD1,
-    prevErrD2,
-    prevErrH,
-    highlightHover = 0,
-    highlighted = elD1,
-    ctxD1,
-    ctxD2,
-    ctxH,
-    curX,
-    curY;
+      prevHighlightHover,
+      prevErrD1,
+      prevErrD2,
+      prevErrH,
+      highlightHover = 0,
+      highlighted = elD1,
+      ctxD1,
+      ctxD2,
+      ctxH,
+      curX,
+      curY;
 
   elD1.value = settings.t;
   elD2.value = settings.b;
@@ -561,7 +539,7 @@ function init(e)
   // closeMenu();
   setTheme();
   onFocus({target: prevFocus});
- 
+
   if (this.inited)
     return;
 
@@ -577,7 +555,6 @@ function init(e)
     elMenuFraction.setAttribute("value", f);
   }
 
-  
   function dropdown(el)
   {
     const elDropdown = el.querySelector(".dropdown-list"),
@@ -629,14 +606,12 @@ function init(e)
     (el.classList.contains("dropdown-box") ? el : el.querySelector('.dropdown-box')).addEventListener("click", e =>
     {
       if (e.target.tagName != "LABEL")
-      {
         popup(el.querySelector('input[type="checkbox"]'), e.target.classList.contains("option"));
-      }
 
       if (!e.target.classList.contains("option"))
         return;
 
-        settings[setting] = e.target.value;
+      settings[setting] = e.target.value;
       dropdown(el);
 //      closeMenu(setting);
       if (settings.onChange[setting] instanceof Function)
@@ -647,7 +622,7 @@ function init(e)
     });
     el._inited = true;
   }
-  
+
   function draw(e)
   {
     // Inputs
@@ -667,16 +642,14 @@ function init(e)
       d2 = errD2 ? prevD2Frac.valueOf() : D2.valueOf(),
       h = errH ? prevHFrac.valueOf() : H.valueOf();
 
-    if (e !== true && !(
-        settings.t != d1 ||
-        settings.b != d2 ||
-        settings.h != h ||
-        prevFocus !== highlighted ||
-        prevErrD1 != errD1 ||
-        prevErrD2 != errD2 ||
-        prevErrH != errH ||
-        prevHighlightHover != highlightHover
-      )
+    if (e !== true && !(settings.t != d1
+                    || settings.b != d2
+                    || settings.h != h
+                    || prevFocus !== highlighted
+                    || prevErrD1 != errD1
+                    || prevErrD2 != errD2
+                    || prevErrH != errH
+                    || prevHighlightHover != highlightHover)
     )
       return;
 
@@ -708,28 +681,28 @@ function init(e)
 
     let arrow = new Arrow(ctxCone);
     const max = Math.max(d1, d2, h),
-      lineWidthOffset = 6,
-      maxWidth = elCanvasCone.width - lineWidthOffset - (max == h ? lineWidthOffset : 0) - arrow.headWidth * 2 - lineWidth * (max == h ? 0.5 : 1),
-      n2p = new N2P(max, maxWidth),
-      _h = n2p(h),
-      offsetY = (canvasHeight - _h) / 2,
-      _r1 = n2p(d1 / 2),
-      _r2 = n2p(d2 / 2),
-      dMax = Math.max(d1, d2),
-      ratio = Math.min(dMax, h) / Math.max(dMax, h),
-      t = Math.abs(ratio* h % 18 - 18),//Math.min(1, Math.max(0.1, tt)),
-      _r1Tilt = n2p(Math.max(0, d1 / (t || 1))),
-      _r2Tilt = n2p(Math.max(0, d2 / (t || 1))),
-      _x = n2p(Math.max(d1, d2)) / 2 + lineWidth,
-      arrowTopY = offsetY - lineWidthOffset,
-      arrowTopLeft = _x - _r1,
-      arrowTopRight = _x + _r1,
-      arrowBottomY = _h + offsetY + lineWidthOffset,
-      arrowBottomLeft = _x - _r2,
-      arrowBottomRight = _x + _r2,
-      arrowRightX = _x + Math.max(_r1, _r2) + lineWidthOffset,
-      arrowRightTop = offsetY + _r1Tilt,
-      arrowRightBottom = _h + offsetY - _r2Tilt;
+          lineWidthOffset = 6,
+          maxWidth = elCanvasCone.width - lineWidthOffset - (max == h ? lineWidthOffset : 0) - arrow.headWidth * 2 - lineWidth * (max == h ? 0.5 : 1),
+          n2p = new N2P(max, maxWidth),
+          _h = n2p(h),
+          offsetY = (canvasHeight - _h) / 2,
+          _r1 = n2p(d1 / 2),
+          _r2 = n2p(d2 / 2),
+          dMax = Math.max(d1, d2),
+          ratio = Math.min(dMax, h) / Math.max(dMax, h),
+          t = Math.abs(ratio* h % 18 - 18),//Math.min(1, Math.max(0.1, tt)),
+          _r1Tilt = n2p(Math.max(0, d1 / (t || 1))),
+          _r2Tilt = n2p(Math.max(0, d2 / (t || 1))),
+          _x = n2p(Math.max(d1, d2)) / 2 + lineWidth,
+          arrowTopY = offsetY - lineWidthOffset,
+          arrowTopLeft = _x - _r1,
+          arrowTopRight = _x + _r1,
+          arrowBottomY = _h + offsetY + lineWidthOffset,
+          arrowBottomLeft = _x - _r2,
+          arrowBottomRight = _x + _r2,
+          arrowRightX = _x + Math.max(_r1, _r2) + lineWidthOffset,
+          arrowRightTop = offsetY + _r1Tilt,
+          arrowRightBottom = _h + offsetY - _r2Tilt;
 
     //top arrow
     arrow(
@@ -809,7 +782,8 @@ function init(e)
       }
       ctxCone.fill();
     };
-    if (highlighted) highlight(highlighted, color.fill);
+    if (highlighted)
+      highlight(highlighted, color.fill);
 
     if (highlightHover == 1 && highlighted != elD1)
       highlight(elD1, color.fillHover);
@@ -821,12 +795,11 @@ function init(e)
     ctxCone.beginPath();
     ctxCone.setLineDash([_r2Tilt / 4, _r2Tilt / 3]);
     ctxCone.lineWidth /= 2;
-    ctxCone.strokeStyle =
-      errD2 && showErrorSides ?
-      color.error :
-      highlightHover == 2 ?
-      color.stroke :
-      color.stroke;
+    ctxCone.strokeStyle = errD2 && showErrorSides
+                          ? color.error
+                          : highlightHover == 2
+                            ? color.stroke
+                            : color.stroke;
     ctxCone.ellipse(
       _x,
       _h - _r2Tilt + offsetY,
@@ -911,12 +884,14 @@ function init(e)
             r2e = dxfArcEnd(data.r2);
 
       dxf.generateAutocadExtras();
-      dxf.header("ACADVER", [
-        [1, "AC1500"]
-      ]);
+      dxf.header("ACADVER", [[1, "AC1500"]]);
       const //vY = -(data.r2 - r2e[1] + r1e[1])/2,
-            vY = -(4 * Math.sin(data.angleRad / 2) * (Math.pow(data.r2, 3) - Math.pow(data.r1, 3))) / (3 * data.angleRad * (data.r2 * data.r2 - data.r1 * data.r1)),
-            vW = r2e[1] > 0 ? data.r2 * 2 : Math.max(data.lineLength(...r2e), data.r2 - (data.r2 - Math.abs(r1e[1])));
+            vY = -(4 * Math.sin(data.angleRad / 2)
+                  * (Math.pow(data.r2, 3) - Math.pow(data.r1, 3)))
+                  / (3 * data.angleRad * (data.r2 * data.r2 - data.r1 * data.r1)),
+            vW = r2e[1] > 0
+                ? data.r2 * 2
+                : Math.max(data.lineLength(...r2e), data.r2 - (data.r2 - Math.abs(r1e[1])));
 
       dxf.viewport(
         d1 == d2 ? data.circumference1 / 2 : 0,
@@ -967,7 +942,19 @@ function init(e)
       setTimeout(() =>
       {
         const canvas = document.createElement("canvas");
-        drawImage({canvas, top: d1, bottom: d2, height: h, lineWidth: 1, stroke: "black", background: "white", fill: "transparent", templateOnly: true, dpi: settings.dpi});
+        drawImage(
+        {
+          canvas,
+          top: d1,
+          bottom: d2,
+          height: h,
+          lineWidth: 1,
+          stroke: "black",
+          background: "white",
+          fill: "transparent",
+          templateOnly: true,
+          dpi: settings.dpi
+        });
 
         canvas.toBlob(blob =>
         {
@@ -992,7 +979,7 @@ function init(e)
 
     /* mock-up */
     const ctxR2 = elCanvasTemplateInfo.getContext("2d"),
-      resStyle = window.getComputedStyle(elCanvasTemplateInfo);
+          resStyle = window.getComputedStyle(elCanvasTemplateInfo);
 
     elCanvasTemplateInfo.width = parseFloat(resStyle.getPropertyValue("--width"));
     elCanvasTemplateInfo.height = parseFloat(resStyle.getPropertyValue("--height"));
@@ -1107,8 +1094,8 @@ function init(e)
 
     /* move input fields */
     let r = elD1.getBoundingClientRect(),
-      x = _x - r.width / 2 > 0 ? _x : r.width / 2,
-      y = arrowTopY -  4;
+        x = _x - r.width / 2 > 0 ? _x : r.width / 2,
+        y = arrowTopY -  4;
 
     elD1.style.left = x - r.width / 2 + "px";
     elD1.style.top = y - r.height + "px";
@@ -1125,20 +1112,16 @@ function init(e)
     elH.style.left = x + "px";
     elH.style.top = y - r.height / 2 + "px";
 
-    if (!errD1) settings.t = d1Value;
-    if (!errD2) settings.b = d2Value;
-    if (!errH) settings.h = hValue;
+    if (!errD1)
+      settings.t = d1Value;
+
+    if (!errD2)
+      settings.b = d2Value;
+
+    if (!errH)
+      settings.h = hValue;
+
     elCanvasTemplateInfo.dataset.type = settings.f;
-  }
-
-  function toRadians(ang)
-  {
-    return (ang * Math.PI) / 180;
-  }
-
-  function toDegree (ang)
-  {
-    return (ang * 180) / Math.PI;
   }
 
   function Arrow(ctx, options)
@@ -1164,165 +1147,174 @@ function init(e)
             return val;
           };
 
-    options = Object.assign(
-      {
-        _headWidth: getValue("arrowHeadWidth"),
-        headSize: getValue("arrowHeadSize", 8),
-        get headWidth()
-        {
-          return this._headWidth || this.headSize / 4;
-        },
-        set headWidth(val)
-        {
-          this._headWidth = val;
-        },
-        fill: getValue("arrowFill", true),
-        headClosed: getValue("arrowHeadClosed", true),
-        showError: true,
-        lineWidth: getValue("arrowLineWidth", 0.35),
-        alpha: 1,
-        color: getValue("arrowColor", color.stroke),
-        colorError: getValue("arrowColorError", color.error),
-      },
-      options ||
-      {}
-    );
+          options = Object.assign(
+            {
+              _headWidth: getValue("arrowHeadWidth"),
+              headSize: getValue("arrowHeadSize", 8),
+              get headWidth()
+              {
+                return this._headWidth || this.headSize / 4;
+              },
+              set headWidth(val)
+              {
+                this._headWidth = val;
+              },
+              fill: getValue("arrowFill", true),
+              headClosed: getValue("arrowHeadClosed", true),
+              showError: true,
+              lineWidth: getValue("arrowLineWidth", 0.35),
+              alpha: 1,
+              color: getValue("arrowColor", color.stroke),
+              colorError: getValue("arrowColorError", color.error),
+            }, options || {}
+          );
 
     const fillText = (el, p, dist, nopos) =>
-      {
-        ctx.save();
-        const ca = ctx.globalAlpha,
-              resStyle = window.getComputedStyle(elCanvasTemplateInfo);
-        let text = el.querySelector("span" + (settings.f || el.id == "angle" ? "" : ":nth-of-type(2)")).textContent.replace(/[()]/g,''),
-            text2 = el.querySelector("label > label").textContent;
+          {
+            ctx.save();
+            const ca = ctx.globalAlpha,
+                  resStyle = window.getComputedStyle(elCanvasTemplateInfo);
 
-        ctx.globalAlpha = 1;
-        let [x1, y1, x2, y2] = p, [px, py] = getPerpendicular(x1, y1, x2, y2, 5),
-          xp1 = x1 + px,
-          xp2 = x2 + px,
-          yp1 = y1 - py,
-          yp2 = y2 - py;
-        text2 = "" + text2 + "";
-        ctx.translate(...getPointOnLine(xp1, yp1, xp2, yp2, dist));
-        ctx.rotate(Math.atan2(yp2 - yp1, xp2 - xp1) - Math.PI);
+            let text = el.querySelector("span" + (settings.f || el.id == "angle" ? "" : ":nth-of-type(2)")).textContent.replace(/[()]/g,''),
+                text2 = el.querySelector("label > label").textContent;
 
-        const fontSize = parseFloat(resStyle.fontSize) / 1.7 + "px";
-        ctx.save();
-        const isnan = isNan(text);
-        if (isnan)
-        {
-          ctx.font = "italic " + fontSize + " " + resStyle.fontFamily;
-          ctx.globalAlpha = 0.5;
-        }
-        elHidden.style.padding = 0;
-        elHidden.style.border = 0;
-        elHidden.textContent = text;
-        elHidden.style.fontFamily = resStyle.fontFamily;
-        elHidden.style.fontSize = isnan ? fontSize : resStyle.fontSize;
-        elHidden.style.fontWeight = resStyle.fontWeight;
+            ctx.globalAlpha = 1;
+            let [x1, y1, x2, y2] = p, [px, py] = getPerpendicular(x1, y1, x2, y2, 5),
+                xp1 = x1 + px,
+                xp2 = x2 + px,
+                yp1 = y1 - py,
+                yp2 = y2 - py;
+            text2 = "" + text2 + "";
+            ctx.translate(...getPointOnLine(xp1, yp1, xp2, yp2, dist));
+            ctx.rotate(Math.atan2(yp2 - yp1, xp2 - xp1) - Math.PI);
 
-        elHidden.innerHTML = `${text}<span style="font-size:${fontSize};">${text2}</span>`;
-        if (!nopos) ctx.textAlign = "start";
+            const fontSize = parseFloat(resStyle.fontSize) / 1.7 + "px";
+            ctx.save();
+            const isnan = isNan(text);
+            if (isnan)
+            {
+              ctx.font = "italic " + fontSize + " " + resStyle.fontFamily;
+              ctx.globalAlpha = 0.5;
+            }
+            elHidden.style.padding = 0;
+            elHidden.style.border = 0;
+            elHidden.textContent = text;
+            elHidden.style.fontFamily = resStyle.fontFamily;
+            elHidden.style.fontSize = isnan ? fontSize : resStyle.fontSize;
+            elHidden.style.fontWeight = resStyle.fontWeight;
 
-        ctx.fillText(
-          text,
-          nopos ? -2 : -elHidden.getBoundingClientRect()
-          .width / 1.9,
-          0
-        );
-        ctx.restore();
-        ctx.fillStyle = color.label;
-        ctx.font =
-          resStyle.fontWeight + " " + fontSize + " " + resStyle.fontFamily;
-        ctx.textAlign = "end";
-        if (!nopos && !isnan) ctx.textBaseline = "bottom";
+            elHidden.innerHTML = `${text}<span style="font-size:${fontSize};">${text2}</span>`;
+            if (!nopos) ctx.textAlign = "start";
 
-        ctx.fillText(
-          text2,
-          elHidden.getBoundingClientRect()
-          .width / (nopos ? 1 : 2) + 2,
-          0
-        );
-        ctx.globalAlpha = ca;
-        ctx.restore();
-      },
-      arrowDraw = (e, a) =>
-      {
-        ctx.lineWidth = options.lineWidth;
-        ctx.globalAlpha = options.alpha * (options.fill && a ? a : 1);
-        const adjust = 0;//a * 100 - 100;
-        ctx.strokeStyle = e && options.showError ? options.colorError : colorAdjust(options.color, adjust);
-        ctx.fillStyle = e && options.showError ? options.colorError : colorAdjust(options.color, adjust);
-        if (options.fill)
-          ctx.fill();
+            ctx.fillText(
+              text,
+              nopos ? -2 : -elHidden.getBoundingClientRect()
+              .width / 1.9,
+              0
+            );
+            ctx.restore();
+            ctx.fillStyle = color.label;
+            ctx.font =
+              resStyle.fontWeight + " " + fontSize + " " + resStyle.fontFamily;
+            ctx.textAlign = "end";
+            if (!nopos && !isnan) ctx.textBaseline = "bottom";
 
-        ctx.stroke();
-      },
-      drawArrow = (x1, y1, x2, y2, start, end, err) =>
-      {
-        const rad = angle(x1, y1, x2, y2);
-        ctx.save();
-        /** line */
-        ctx.beginPath();
-        ctx.moveTo(
-          ...getPointOnLine(
-            x1,
-            y1,
-            x2,
-            y2,
-            options.headClosed && start ? options.headSize : 0
-          )
-        );
-        ctx.lineTo(
-          ...getPointOnLine(
-            x2,
-            y2,
-            x1,
-            y1,
-            options.headClosed && end ? options.headSize : 0
-          )
-        );
-        arrowDraw(err);
-        ctx.restore();
-        /** arrows */
-        if (start)
-        {
-          ctx.save();
-          ctx.beginPath();
-          ctx.translate(x1, y1);
-          ctx.rotate(rad);
-          ctx.moveTo(options.headSize, -options.headWidth);
-          ctx.lineTo(0, 0);
-          ctx.lineTo(options.headSize, options.headWidth);
-          if (options.headClosed)
-            ctx.lineTo(options.headSize, -options.headWidth);
+            ctx.fillText(
+              text2,
+              elHidden.getBoundingClientRect()
+              .width / (nopos ? 1 : 2) + 2,
+              0
+            );
+            ctx.globalAlpha = ca;
+            ctx.restore();
+          },
+          arrowDraw = (e, a) =>
+          {
+            const adjust = 0;//a * 100 - 100;
+            ctx.lineWidth = options.lineWidth;
+            ctx.globalAlpha = options.alpha * (options.fill && a ? a : 1);
+            ctx.strokeStyle = e && options.showError ? options.colorError : colorAdjust(options.color, adjust);
+            ctx.fillStyle = e && options.showError ? options.colorError : colorAdjust(options.color, adjust);
+            if (options.fill)
+              ctx.fill();
 
-          arrowDraw(err, options.lineWidth);
-          ctx.restore();
-        }
-        if (end)
-        {
-          ctx.save();
-          ctx.beginPath();
-          ctx.translate(x2, y2);
-          ctx.rotate(rad);
-          ctx.moveTo(-options.headSize, -options.headWidth);
-          ctx.lineTo(0, 0);
-          ctx.lineTo(-options.headSize, options.headWidth);
-          if (options.headClosed)
-            ctx.lineTo(-options.headSize, -options.headWidth);
+            ctx.stroke();
+          },
+          drawArrow = (x1, y1, x2, y2, start, end, err) =>
+          {
+            const rad = angle(x1, y1, x2, y2);
+            ctx.save();
+            /** line */
+            ctx.beginPath();
+            ctx.moveTo(...getPointOnLine(
+                x1,
+                y1,
+                x2,
+                y2,
+                options.headClosed && start ? options.headSize : 0
+              )
+            );
+            ctx.lineTo(...getPointOnLine(
+                x2,
+                y2,
+                x1,
+                y1,
+                options.headClosed && end ? options.headSize : 0
+              )
+            );
+            arrowDraw(err);
+            ctx.restore();
+            /** arrows */
+            if (start)
+            {
+              ctx.save();
+              ctx.beginPath();
+              ctx.translate(x1, y1);
+              ctx.rotate(rad);
+              ctx.moveTo(options.headSize, -options.headWidth);
+              ctx.lineTo(0, 0);
+              ctx.lineTo(options.headSize, options.headWidth);
+              if (options.headClosed)
+                ctx.lineTo(options.headSize, -options.headWidth);
 
-          arrowDraw(err, options.lineWidth);
-          ctx.restore();
-        }
-      },
-      draw = (p, start, end, err, text) =>
-      {
-        if (start || end) drawArrow(...p, start, end, err);
+              arrowDraw(err, options.lineWidth);
+              ctx.restore();
+            }
+            if (end)
+            {
+              ctx.save();
+              ctx.beginPath();
+              ctx.translate(x2, y2);
+              ctx.rotate(rad);
+              ctx.moveTo(-options.headSize, -options.headWidth);
+              ctx.lineTo(0, 0);
+              ctx.lineTo(-options.headSize, options.headWidth);
+              if (options.headClosed)
+                ctx.lineTo(-options.headSize, -options.headWidth);
 
-        if (text) fillText(...text);
-      };
+              arrowDraw(err, options.lineWidth);
+              ctx.restore();
+            }
+          },
+          draw = (p, start, end, err, text) =>
+          {
+            if (start || end)
+              drawArrow(...p, start, end, err);
+
+            if (text)
+              fillText(...text);
+          };
     return Object.assign(draw, options);
+  }
+
+  function toRadians(ang)
+  {
+    return (ang * Math.PI) / 180;
+  }
+
+  function toDegree (ang)
+  {
+    return (ang * 180) / Math.PI;
   }
 
   function lineLength(x1, y1, x2, y2)
@@ -1333,33 +1325,36 @@ function init(e)
   function getParallelLine(x1, y1, x2, y2, dist)
   {
     const [px, py] = getPerpendicular(x2, y2, x1, y1, dist),
-      xp1 = x1 + px,
-      xp2 = x2 + px,
-      yp1 = y1 - py,
-      yp2 = y2 - py;
-    return [
-      ...getPointOnLine(xp2, yp2, xp1, yp1, 0),
-      ...getPointOnLine(xp1, yp1, xp2, yp2, 0),
-    ];
+          xp1 = x1 + px,
+          xp2 = x2 + px,
+          yp1 = y1 - py,
+          yp2 = y2 - py;
+
+    return [...getPointOnLine(xp2, yp2, xp1, yp1, 0), ...getPointOnLine(xp1, yp1, xp2, yp2, 0)];
   }
 
   function getPointOnLine(x1, y1, x2, y2, dist)
   {
     let len = lineLength(x1, y1, x2, y2),
-      t = dist / len;
+        t = dist / len;
+
     return [(1 - t) * x1 + t * x2, (1 - t) * y1 + t * y2];
   }
 
   function colorAdjust(color, amount)
   {
-    return '#' + color.match(/([0-9]+)/g).map(color => ('0'+Math.min(255, Math.max(0, ~~color + ~~(amount * 255 / 100))).toString(16)).substr(-2)).join("");
+    return '#' + color.match(/([0-9]+)/g)
+                      .map(color => ('0'+Math.min(255, Math.max(0, ~~color + ~~(amount * 255 / 100)))
+                      .toString(16))
+                      .substr(-2))
+                      .join("");
   }
 
   function getPerpendicular(x1, y1, x2, y2, len)
   {
     let px = y1 - y2,
-      py = x1 - x2,
-      dist = len / Math.hypot(px, py);
+        py = x1 - x2,
+        dist = len / Math.hypot(px, py);
 
     px *= dist;
     py *= dist;
@@ -1373,18 +1368,18 @@ function init(e)
 
   function isNan(t)
   {
-    return ("" + t)
-      .match(/^(NaN|Infinity|undefined|n\/a|N\/A)$/);
+    return ("" + t).match(/^(NaN|Infinity|undefined|n\/a|N\/A)$/);
   }
 
   function showValue(el, ...args)
   {
     const children = el.querySelectorAll("span"),
-      f = t => (isNan(t) ? "N/A" : t);
+          f = t => (isNan(t) ? "N/A" : t);
 
     el.classList.remove("na");
 
-    if (args[args.length - 1] !== false) el.value = args[0];
+    if (args[args.length - 1] !== false)
+      el.value = args[0];
 
     for (let i = 0, na; i < args.length; i++)
     {
@@ -1407,8 +1402,7 @@ function init(e)
 
     elHidden.style.padding = "0.5em";
     elHidden.textContent = el.value;
-    el.style.width = elHidden.getBoundingClientRect()
-      .width + "px";
+    el.style.width = elHidden.getBoundingClientRect().width + "px";
   }
 
   function filter(t)
@@ -1441,31 +1435,25 @@ function init(e)
       denominator = settings.p;
 
     if (denominator > 0)
-      return new Fraction(
-          Math.round(new Fraction(num) * denominator),
-          denominator
-        )
-        .toFraction(true);
-    else return new Fraction(Math.floor(new Fraction(num)), 1)
-      .toFraction(true);
+      return new Fraction(Math.round(new Fraction(num) * denominator), denominator).toFraction(true);
+    else
+      return new Fraction(Math.floor(new Fraction(num)), 1).toFraction(true);
   }
 
   function fractionFormat(f, n)
   {
-    return f.replace(
-      /^([0-9]+)\/([0-9]+)|([0-9]+)(\s+([0-9]+)\/([0-9]+))|([0-9]+)/,
+    return f.replace(/^([0-9]+)\/([0-9]+)|([0-9]+)(\s+([0-9]+)\/([0-9]+))|([0-9]+)/,
       (...args) =>
       {
         let r = args[3] || args[7] || "";
         if (args[1] || args[5])
-          r +=
-          (r !== "" ? (round((args[1] || args[5]) / (args[2] || args[6])) == round(n % 1) ? " " : "~") : "") +
-          `${args[1] || args[5]}⁄${args[2] || args[6]}`;
+          r += (r !== "" ? (round((args[1] || args[5]) / (args[2] || args[6])) == round(n % 1) ? " " : "~")
+                         : "")
+               + `${args[1] || args[5]}⁄${args[2] || args[6]}`;
         // r += (r !== "" ? " " : "") + `<sup>${args[1] || args[5]}</sup>&frasl;<sub>${args[2] || args[6]}</sub>`;
         return r;
       }
     );
-    // return f.replace(/^([0-9]+)\/([0-9]+)|([0-9]+)(\s+([0-9]+)\/([0-9]+))|([0-9]+)/, '$3$7 $1$5⁄$2$6');
   }
 
   function setTheme(theme)
@@ -1478,49 +1466,38 @@ function init(e)
     else
       document.documentElement.setAttribute("theme", settings.d ? "dark" : "light");
 
-//    document.querySelector('[data-type="theme"]').setAttribute("value", theme);
     settings.d = theme;
     const style = document.getElementById("dropdownstyle") || document.createElement("style"),
           s = getComputedStyle(document.querySelector("select")),
-          css = `label.dropdown{
-                    ${Array.from(s)
-                      .map(k => `${k}:${s[k]}`)
-                      .join(";")}
-                  }`;
+          css = `label.dropdown{${Array.from(s).map(k =>`${k}:${s[k]}`).join(";")}}`;
 
     style.innerHTML = css;
     style.id = "dropdownstyle";
-    document.head.insertBefore(
-      style,
-      document.head.querySelector("[rel='stylesheet']")
-    );
+    document.head.insertBefore(style, document.head.querySelector("[rel='stylesheet']"));
     document.documentElement.style.setProperty("--textColor", getComputedStyle(document.documentElement).color);
   }
 
   function onTextInput(e)
   {
-    if (e.timeStamp - onTextInput.timeStamp < 10) return;
+    if (e.timeStamp - onTextInput.timeStamp < 10)
+      return;
 
     onTextInput.timeStamp = e.timeStamp;
 
     const char = e.key || e.data;
     if (char == "Enter")
-      return e.target[
-        (e.shiftKey ? "previous" : "next") + "ElementSibling"
-      ].focus();
+      return e.target[(e.shiftKey ? "previous" : "next") + "ElementSibling"].focus();
 
-    if (
-      (char == "-" &&
-        filter(e.target.value.substr(0, e.target.selectionStart) + char)) ||
-      (char && !char.match(new RegExp("[^\\d\\/., " + fractionGlyphs + "]")))
-    )
+    if ((char == "-" && filter(e.target.value.substr(0, e.target.selectionStart) + char))
+        || (char && !char.match(new RegExp("[^\\d\\/., " + fractionGlyphs + "]"))))
     {
       return true;
     }
 
     if (e.type == "keydown")
     {
-      if (e.ctrlKey || (char.length > 1 && char != "Processing")) return true;
+      if (e.ctrlKey || (char.length > 1 && char != "Processing"))
+        return true;
     }
     e.preventDefault();
     e.stopPropagation();
@@ -1656,7 +1633,7 @@ function init(e)
     e.addEventListener("beforeinput", onTextInput); //mobile
     e.addEventListener("textInput", onTextInput); //mobile
   });
-  
+
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e =>
   {
     if (settings.d != 2) return;
