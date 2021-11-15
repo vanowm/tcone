@@ -1,4 +1,6 @@
 //jshint -W018,-W014, esversion:9
+(()=>
+{
 window.addEventListener("DOMContentLoaded", init);
 function init(e)
 {
@@ -1720,3 +1722,4 @@ function init(e)
   document.documentElement.removeAttribute("notinited");
   this.inited = true;
 }
+})();
