@@ -254,7 +254,7 @@ function init(e)
     // ctx.fill();
     ctx.restore();
     return data;
-  };
+  }
   const elD1 = document.getElementById("d1"),
         elD2 = document.getElementById("d2"),
         elR1 = document.getElementById("r1"),
@@ -1715,7 +1715,7 @@ function init(e)
   <label for="${elDropdown.dataset.setting}-dropdown" class="dropdown-list"><ul></ul></label>
 </div>`;
         elDropdown.appendChild(dropdownBox);
-      };
+      }
       dropdown(elDropdown);
     }
   }
