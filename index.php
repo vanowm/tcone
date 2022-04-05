@@ -134,8 +134,8 @@ if (@$_SERVER['QUERY_STRING'])
 
 <body>
   <div class="content">
-    <div>
-      <div class="container input">
+    <div class="input">
+      <div class="container">
         <canvas id="cone"></canvas>
         <span tabindex="0" onfocus="h.focus();"></span>
         <input id="d1" title="Top Diameter" type="tel">

@@ -11,6 +11,7 @@
   --arrowColorError: ;          /* any */
   --textColor: CanvasText;
   --backgroundColor: Canvas;
+  --input-font-size: 1.5em;
   color-scheme: light dark;
   color-scheme: normal dark;
   /* background-color: green; */
@@ -69,20 +70,20 @@ body {
   flex-wrap: wrap;
 }
 
-.content > * {
-  margin: 1.5em 0.5em;
-}
-
 .container {
-  width: var(--size);
+  min-width: var(--size);
   height: var(--size);
-  position: relative;
-  margin-top: 0.5em;
   display: inline-block;
-  margin-bottom: 2em;
 }
 
-.container>*:not(canvass) {
+.input > .container
+{
+  margin-top: calc(var(--input-font-size) + 1em);
+  margin-bottom: calc(var(--input-font-size) + 1.5em);
+  position: relative;
+}
+
+.container > *:not(canvass) {
   position: absolute;
   vertical-align: middle;
   text-align: center;
@@ -97,9 +98,20 @@ input:not([style])
   top: -99999vh;
 }
 
+input:focus
+{
+  background-color: rgb(30, 90, 30);
+  color: white;
+}
+
 body:not([data-popup]) input {
   z-index: 1;
   /* border: 0; */
+}
+
+input
+{
+  font-size: var(--input-font-size);
   width: 2em;
 }
 
@@ -137,7 +149,21 @@ canvas {
   text-align: start;
 }
 
-.result .table>div>span:last-child {
+.result .table > div > span:first-of-type::before {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  margin-left: -0.5em;
+}
+  .result .table > div[data-up] > span:first-of-type::before {
+  content: "▿";
+}
+
+.result .table > div[data-up="true"] > span:first-of-type::before {
+  content: "▵";
+}
+
+.result .table > div > span:last-child {
   font-weight: normal;
   /* text-align: end; */
 }
@@ -419,6 +445,7 @@ nav > .close-overlay {
   font-size: 0.8em;
   opacity: 0.2;
   cursor: default;
+  display: none;
 }
 
 .download > *[href]

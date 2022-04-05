@@ -13,248 +13,18 @@ function init(e)
     el.style.display = "none";
     document.body.appendChild(el);
     let color;
-    for(let i = 0, c = ["canvastext", "initial", "unset"]; i < c.length; i++ )
+    for(let i = 0, c = ["canvastext", "initial", "unset"]; i < c.length && !color; i++ )
     {
       el.style.color = c[i];
       el.style.colorScheme = "dark";
       color = getComputedStyle(el).color;
       el.style.colorScheme = "light";
       color = color != getComputedStyle(el).color;
-      if (color)
-        break;
     }
     document.body.removeChild(el);
     return color;
   }();
   document.documentElement.classList.toggle("hasDark", hasDarkMode);
-  function drawImage(options) //canvas, d1, d2, h, _lineWidth, strokeColor, fillColor, patternOnly, fullSize) =>
-  {
-    const canvas = options.canvas,
-          d1 = options.top,
-          d2 = options.bottom,
-          h = options.height,
-          _lineWidth = options.lineWidth || lineWidth,
-          backgroundColor = options.background || "transparent",
-          strokeColor = options.stroke || color.stroke,
-          fillColor = options.fill || color.fill,
-          templateOnly = options.templateOnly,
-          dpi = options.dpi;
-
-    const data = new Proxy(...(() =>
-    {
-      const diameter1 = Math.min(d1, d2),
-            diameter2 = Math.max(d1, d2),
-            radius1 = diameter1 / 2 /* top radius */ ,
-            radius2 = diameter2 / 2 /* bottom radius */ ,
-            circumference1 = radius1 * Math.PI * 2,
-            circumference2 = radius2 * Math.PI * 2,
-            dif = diameter2 - diameter1,
-            hT = (h * diameter2) / (dif ? dif : 0) /* triangle height (center of radius to bottom of the cone) */ ,
-            b = radius2 - radius1 ? radius2 - radius1 : 0 /* difference between top and bottom */ ,
-            rH = Math.sqrt(h * h + b * b) /* radius for cone height (cone slope length) */ ,
-            r2 = Math.sqrt(hT * hT + radius2 * radius2) /* pattern outer radius */ ,
-            r1 = r2 - rH /* pattern inner radius */ ,
-            c = Math.PI * diameter2 /* cone circumference */ ,
-            cT = Math.PI * 2 * r2 /* total pattern circumference */ ,
-            angleRad = d1 == d2 ? Math.PI : c / r2 /* angle in radians */ ,
-            angleDeg = (angleRad * 180) / Math.PI /*(360 * c) / cT*/ /* angle in degres */ ,
-            r1Length = angleRad * r1 /* length of top arc */ ,
-            r2Length = angleRad * r2 /* length of bottom arc */ ,
-            arcEnd = (c1, c2, radius, angleRad, bot) => !isFinite(radius) || !radius ? [c1, c2 + (bot ? h : 0), circumference2, c2 + (bot ? h : 0)] : [
-              /* coordinates of an arc */
-              c1 + Math.cos(Math.PI / 2 - angleRad / 2) * radius /* x1 */ ,
-              c2 + Math.sin(Math.PI / 2 - angleRad / 2) * radius /* y1 */ ,
-              c1 + Math.cos(Math.PI / 2 + angleRad / 2) * radius /* x2 */ ,
-              c2 + Math.sin(Math.PI / 2 + angleRad / 2) * radius /* y2 */ ,
-            ],
-            r1Ends = arcEnd(0, 0, r1, angleRad),
-            r2Ends = arcEnd(0, 0, r2, angleRad, true),
-            l1 = lineLength(...r1Ends),
-            l2 = lineLength(...r2Ends),
-            l3 = lineLength(r1Ends[0], r1Ends[1], r2Ends[2], r2Ends[3]),
-            bounds = [r2Ends[1] < 0 ? r2 * 2 : l2, isFinite(r2) ? r2 - Math.min(r2Ends[1], r1Ends[1]) : r2Ends[1]],
-            data = {
-              x: canvas.width / 2,
-              y: 0,
-              radius1,
-              radius2,
-              diameter1,
-              diameter2,
-              circumference1,
-              circumference2,
-              r1,
-              r2,
-              angleRad: d1 == d2 ? 0 : angleRad,
-              angleDeg: d1 == d2 ? 0 : angleDeg,
-              hT,
-              b,
-              h,
-              rH,
-              r1Ends,
-              r2Ends,
-              r1Length,
-              r2Length,
-              l1,
-              l2,
-              l3,
-              arcEnd,
-              lineLength,
-              bounds,
-              dpi,
-            },
-            handler = {
-              /** using proxy object to convert any variables that start with _ to percentatge value and $ = round to 2 decimal places */
-              get: function (target, prop)
-              {
-                if (!(prop in target))
-                {
-                  const func = {
-                      _: this.n2p,
-                      $: round,
-                    },
-                    F = Object.keys(func).join("").replace(/[-[\]{}()*+?.,\\^$|]/g, "\\$&"),
-                    match = (prop.match(new RegExp("^([" + F + "]*)", "")) || ["", "",])[1].split("");
-
-                  if (match.length)
-                  {
-                    const key = prop.replace(new RegExp("^[" + F + "]+", ""), "");
-                    let val = target[key];
-                    for (let i = 0; i < match.length; i++)
-                    {
-                      if (key in target)
-                        target[prop] = val = (val instanceof Array ? val.map(func[match[i]]) : func[match[i]](val));
-                    }
-                  }
-                }
-                return target[prop];
-              },
-              n2p: new N2P(
-                d1 == d2 ?
-                Math.max((d1 / 2) * Math.PI * 2, h) :
-                templateOnly ? Math.max(...bounds) :
-                Math.max(
-                  r2,
-                  r2Ends[1] < 0 ? r2 * 2 : lineLength(...r2Ends),
-                  r2 - r2Ends[1]
-                ),
-                (dpi ? Math.max(...bounds.map(s => s * dpi - _lineWidth)) : Math.max(canvas.width, canvas.height)) - _lineWidth * 2
-              ),
-            };
-
-      return [data, handler];
-    })());
-    if (dpi)
-    {
-      canvas.width = data.bounds[0] * data.dpi;
-      canvas.height = data.bounds[1] * data.dpi;
-      canvas.style.width = canvas.width + "px";
-      canvas.style.height = canvas.height + "px";
-    }
-    if (templateOnly)
-    {
-      data.x = canvas.width / 2;
-      data.y = -Math.min(data._r1Ends[1], data._r2Ends[1]);
-    }
-    else
-    {
-      data.y = Math.min(data._r1Ends[1], data._r2Ends[1]);
-      if (data.y < 0)
-        data.y = Math.abs(data.y) + _lineWidth;
-      else
-        data.y = _lineWidth;
-    }
-
-    const topArcEnds = data.arcEnd(data.x, data.y, data._r1, data.angleRad),
-          bottomArcEnds = data.arcEnd(
-            data.x,
-            data.y,
-            data._r2,
-            data.angleRad,
-            true
-          ),
-          ctx = canvas.getContext("2d");
-
-    data.topArcEnds = topArcEnds;
-    data.bottomArcEnds = bottomArcEnds;
-    // ctx.fillStyle = color.fill;
-    ctx.save();
-    ctx.fillStyle = backgroundColor;
-    // ctx.fillStyle = "black";
-    ctx.strokeStyle = strokeColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.lineWidth = _lineWidth;
-    ctx.fillStyle = fillColor;
-
-    ctx.beginPath();
-    if (isFinite(data.r1))
-    {
-// console.log(data.x, data.y, data._r1, data);
-      ctx.beginPath();
-      ctx.arc(
-        data.x,
-        data.y,
-        data._r1,
-        Math.PI / 2 - data.angleRad / 2,
-        Math.PI / 2 + data.angleRad / 2
-      );
-      ctx.arc(
-        data.x,
-        data.y,
-        data._r2,
-        Math.PI / 2 + data.angleRad / 2,
-        Math.PI / 2 - data.angleRad / 2,
-        true
-      );
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.beginPath();
-      /* left side line */
-      // drawn by stroke of 2 arcs
-
-      /* right side line */
-      ctx.moveTo(topArcEnds[0], topArcEnds[1]);
-      ctx.lineTo(bottomArcEnds[0], bottomArcEnds[1]);
-      ctx.stroke();
-
-      if (!templateOnly)
-      {
-        ctx.beginPath();
-        /* dotted line */
-        ctx.setLineDash([5, 8]);
-        ctx.lineWidth = _lineWidth / 4;
-        ctx.moveTo(topArcEnds[2], topArcEnds[1]);
-        ctx.lineTo(data.x, data.y);
-        ctx.lineTo(topArcEnds[0], topArcEnds[1]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        /* center mark */
-        ctx.beginPath();
-        ctx.arc(data.x, data.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = "red";
-        ctx.fill();
-      }
-    }
-    else
-    {
-      const x = data.topArcEnds[0] - data.x + _lineWidth/2,
-            y = data.topArcEnds[1] - data.y + _lineWidth/2,
-            w = data._circumference1,
-            h = data._h;
-
-      ctx.rect(x, y, w, h);
-      ctx.fill();
-      ctx.stroke();
-    }
-
-    // ctx.beginPath();
-    // ctx.arc(data.x,  data.y + (4 * Math.sin(data.angleRad/2) * (Math.pow(data._r2, 3) - Math.pow(data._r1, 3)))/ (3*data.angleRad*(data._r2*data._r2 - data._r1*data._r1)) , 3, 0, Math.PI*2);
-    // ctx.fillStyle = "red"
-    // ctx.fill();
-    ctx.restore();
-    return data;
-  }
   const elD1 = document.getElementById("d1"),
         elD2 = document.getElementById("d2"),
         elR1 = document.getElementById("r1"),
@@ -522,6 +292,7 @@ function init(e)
   // dropdown(elDpi);
 
 //--------------------------------[ defaults ]------------------------------------
+
   let prevFocus = elD1,
       prevHighlightHover,
       prevErrD1,
@@ -547,83 +318,234 @@ function init(e)
 
 //--------------------------------[ functions ]-----------------------------------
 
-  function showAsFraction(f)
+  function drawImage(options) //canvas, d1, d2, h, _lineWidth, strokeColor, fillColor, patternOnly, fullSize) =>
   {
-    if (f !== undefined)
-      settings.f = f;
+    const canvas = options.canvas,
+          d1 = options.top,
+          d2 = options.bottom,
+          h = options.height,
+          _lineWidth = options.lineWidth || lineWidth,
+          backgroundColor = options.background || "transparent",
+          strokeColor = options.stroke || color.stroke,
+          fillColor = options.fill || color.fill,
+          templateOnly = options.templateOnly,
+          dpi = options.dpi;
 
-    f = settings.f;
-    elMenuFraction.value = f;
-    elMenuFraction.setAttribute("value", f);
-  }
-
-  function dropdown(el)
-  {
-    const elDropdown = el.querySelector(".dropdown-list"),
-          elUl = el.querySelector("ul"),
-          elOption = document.createElement("li"),
-          setting = el.dataset.setting,
-          list = settings.valid[el.dataset.setting],
-          names = settings.names[el.dataset.setting] || [];
-
-    let placeholder;
-    for (let i = 0, val = 1, max = 0, o; i < list.length; i++)
+    const data = new Proxy(...(() =>
     {
-      o = elUl.children[i] || elOption.cloneNode(true);
-      if (el.dataset.setting == "p")
-      {
-        val = i ? val * 2 : i+1;
-        o.textContent = !i ? "Round" : "1⁄" + val;
-      }
+      const diameter1 = Math.min(d1, d2),
+            diameter2 = Math.max(d1, d2),
+            radius1 = diameter1 / 2 /* top radius */ ,
+            radius2 = diameter2 / 2 /* bottom radius */ ,
+            circumference1 = radius1 * Math.PI * 2,
+            circumference2 = radius2 * Math.PI * 2,
+            dif = diameter2 - diameter1,
+            hT = (h * diameter2) / (dif ? dif : 0) /* triangle height (center of radius to bottom of the cone) */ ,
+            b = radius2 - radius1 ? radius2 - radius1 : 0 /* difference between top and bottom */ ,
+            rH = Math.sqrt(h * h + b * b) /* radius for cone height (cone slope length) */ ,
+            r2 = Math.sqrt(hT * hT + radius2 * radius2) /* pattern outer radius */ ,
+            r1 = r2 - rH /* pattern inner radius */ ,
+            c = Math.PI * diameter2 /* cone circumference */ ,
+            cT = Math.PI * 2 * r2 /* total pattern circumference */ ,
+            angleRad = d1 == d2 ? Math.PI : c / r2 /* angle in radians */ ,
+            angleDeg = (angleRad * 180) / Math.PI /*(360 * c) / cT*/ /* angle in degres */ ,
+            r1Length = angleRad * r1 /* length of top arc */ ,
+            r2Length = angleRad * r2 /* length of bottom arc */ ,
+            arcEnd = (c1, c2, radius, angleRad, bot) => !isFinite(radius) || !radius ? [c1, c2 + (bot ? h : 0), circumference2, c2 + (bot ? h : 0)] : [
+              /* coordinates of an arc */
+              c1 + Math.cos(Math.PI / 2 - angleRad / 2) * radius /* x1 */ ,
+              c2 + Math.sin(Math.PI / 2 - angleRad / 2) * radius /* y1 */ ,
+              c1 + Math.cos(Math.PI / 2 + angleRad / 2) * radius /* x2 */ ,
+              c2 + Math.sin(Math.PI / 2 + angleRad / 2) * radius /* y2 */ ,
+            ],
+            r1Ends = arcEnd(0, 0, r1, angleRad),
+            r2Ends = arcEnd(0, 0, r2, angleRad, true),
+            l1 = lineLength(...r1Ends),
+            l2 = lineLength(...r2Ends),
+            l3 = lineLength(r1Ends[0], r1Ends[1], r2Ends[2], r2Ends[3]),
+            bounds = [r2Ends[1] < 0 ? r2 * 2 : l2, isFinite(r2) ? r2 - Math.min(r2Ends[1], r1Ends[1]) : r2Ends[1]],
+            data = {
+              x: canvas.width / 2,
+              y: 0,
+              radius1,
+              radius2,
+              diameter1,
+              diameter2,
+              circumference1,
+              circumference2,
+              r1,
+              r2,
+              angleRad: d1 == d2 ? 0 : angleRad,
+              angleDeg: d1 == d2 ? 0 : angleDeg,
+              hT,
+              b,
+              h,
+              rH,
+              r1Ends,
+              r2Ends,
+              r1Length,
+              r2Length,
+              l1,
+              l2,
+              l3,
+              arcEnd,
+              lineLength,
+              bounds,
+              dpi,
+            },
+            handler = {
+              /** using proxy object to convert any variables that start with _ to percentatge value and $ = round to 2 decimal places */
+              get: function (target, prop)
+              {
+                if (!(prop in target))
+                {
+                  const func = {
+                      _: this.n2p,
+                      $: round,
+                    },
+                    F = Object.keys(func).join("").replace(/[-[\]{}()*+?.,\\^$|]/g, "\\$&"),
+                    match = (prop.match(new RegExp("^([" + F + "]*)", "")) || ["", "",])[1].split("");
+
+                  if (match.length)
+                  {
+                    const key = prop.replace(new RegExp("^[" + F + "]+", ""), "");
+                    let val = target[key];
+                    for (let i = 0; i < match.length; i++)
+                    {
+                      if (key in target)
+                        target[prop] = val = (val instanceof Array ? val.map(func[match[i]]) : func[match[i]](val));
+                    }
+                  }
+                }
+                return target[prop];
+              },
+              n2p: new N2P(
+                d1 == d2 ?
+                Math.max((d1 / 2) * Math.PI * 2, h) :
+                templateOnly ? Math.max(...bounds) :
+                Math.max(
+                  r2,
+                  r2Ends[1] < 0 ? r2 * 2 : lineLength(...r2Ends),
+                  r2 - r2Ends[1]
+                ),
+                (dpi ? Math.max(...bounds.map(s => s * dpi - _lineWidth)) : Math.max(canvas.width, canvas.height)) - _lineWidth * 2
+              ),
+            };
+
+      return [data, handler];
+    })());
+    if (dpi)
+    {
+      canvas.width = data.bounds[0] * data.dpi;
+      canvas.height = data.bounds[1] * data.dpi;
+      canvas.style.width = canvas.width + "px";
+      canvas.style.height = canvas.height + "px";
+    }
+    if (templateOnly)
+    {
+      data.x = canvas.width / 2;
+      data.y = -Math.min(data._r1Ends[1], data._r2Ends[1]);
+    }
+    else
+    {
+      data.y = Math.min(data._r1Ends[1], data._r2Ends[1]);
+      if (data.y < 0)
+        data.y = Math.abs(data.y) + _lineWidth;
       else
-      {
-        val = list[i];
-        o.textContent = names[i] || val;
-      }
-      o.value = val;
-      selected = settings[setting] == val;
-      o.classList.toggle("default", val == settings.default[setting]);
-      o.classList.add("option");
-      o.classList.toggle("selected", selected);
-      if (!elUl.children[i])
-      {
-        elUl.appendChild(o);
-      }
+        data.y = _lineWidth;
+    }
 
-      if (selected)
-        elDropdown.dataset.value = o.textContent;
+    const topArcEnds = data.arcEnd(data.x, data.y, data._r1, data.angleRad),
+          bottomArcEnds = data.arcEnd(
+            data.x,
+            data.y,
+            data._r2,
+            data.angleRad,
+            true
+          ),
+          ctx = canvas.getContext("2d");
 
-      elHidden.textContent = o.textContent;
-      if (elHidden.clientWidth > max)
+    data.topArcEnds = topArcEnds;
+    data.bottomArcEnds = bottomArcEnds;
+    // ctx.fillStyle = color.fill;
+    ctx.save();
+    ctx.fillStyle = backgroundColor;
+    // ctx.fillStyle = "black";
+    ctx.strokeStyle = strokeColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = _lineWidth;
+    ctx.fillStyle = fillColor;
+
+    ctx.beginPath();
+    if (isFinite(data.r1))
+    {
+  // console.log(data.x, data.y, data._r1, data);
+      ctx.beginPath();
+      ctx.arc(
+        data.x,
+        data.y,
+        data._r1,
+        Math.PI / 2 - data.angleRad / 2,
+        Math.PI / 2 + data.angleRad / 2
+      );
+      ctx.arc(
+        data.x,
+        data.y,
+        data._r2,
+        Math.PI / 2 + data.angleRad / 2,
+        Math.PI / 2 - data.angleRad / 2,
+        true
+      );
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.beginPath();
+      /* left side line */
+      // drawn by stroke of 2 arcs
+
+      /* right side line */
+      ctx.moveTo(topArcEnds[0], topArcEnds[1]);
+      ctx.lineTo(bottomArcEnds[0], bottomArcEnds[1]);
+      ctx.stroke();
+
+      if (!templateOnly)
       {
-        max = elHidden.clientWidth;
-        placeholder = o.textContent;
+        ctx.beginPath();
+        /* dotted line */
+        ctx.setLineDash([5, 8]);
+        ctx.lineWidth = _lineWidth / 4;
+        ctx.moveTo(topArcEnds[2], topArcEnds[1]);
+        ctx.lineTo(data.x, data.y);
+        ctx.lineTo(topArcEnds[0], topArcEnds[1]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        /* center mark */
+        ctx.beginPath();
+        ctx.arc(data.x, data.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = "red";
+        ctx.fill();
       }
     }
-    elUl.parentNode.parentNode.dataset.placeholder = placeholder;
-    el.querySelector('input[type="checkbox"]').checked = false;
-    if (el._inited)
-      return;
-
-    (el.classList.contains("dropdown-box") ? el : el.querySelector('.dropdown-box')).addEventListener("click", e =>
+    else
     {
-      if (e.target.tagName != "LABEL")
-        popup(el.querySelector('input[type="checkbox"]'), e.target.classList.contains("option"));
+      const x = data.topArcEnds[0] - data.x + _lineWidth/2,
+            y = data.topArcEnds[1] - data.y + _lineWidth/2,
+            w = data._circumference1,
+            h = data._h;
 
-      if (!e.target.classList.contains("option"))
-        return;
+      ctx.rect(x, y, w, h);
+      ctx.fill();
+      ctx.stroke();
+    }
 
-      settings[setting] = e.target.value;
-      dropdown(el);
-//      closeMenu(setting);
-      if (settings.onChange[setting] instanceof Function)
-        settings.onChange[setting](e.target.value);
-
-      draw(true);
-      e.preventDefault();
-    });
-    el._inited = true;
-  }
+    // ctx.beginPath();
+    // ctx.arc(data.x,  data.y + (4 * Math.sin(data.angleRad/2) * (Math.pow(data._r2, 3) - Math.pow(data._r1, 3)))/ (3*data.angleRad*(data._r2*data._r2 - data._r1*data._r1)) , 3, 0, Math.PI*2);
+    // ctx.fillStyle = "red"
+    // ctx.fill();
+    ctx.restore();
+    return data;
+  }//drawImage()
 
   function draw(e)
   {
@@ -665,9 +587,9 @@ function init(e)
     elD1.classList.toggle("error", errD1);
     inputWidth(elD2);
     elD2.classList.toggle("error", errD2);
-    inputWidth(elH);
+    inputWidth(elH, true);
     elH.classList.toggle("error", errH);
-
+    
     elCanvasCone.width = canvasWidth;
     elCanvasCone.height = canvasHeight;
     elCanvasCone.style.width = canvasWidth + "px";
@@ -1114,6 +1036,8 @@ function init(e)
     elH.style.left = x + "px";
     elH.style.top = y - r.height / 2 + "px";
 
+    elH.parentNode.style.marginRight = ((arrowRightX + 4) - parseFloat(elH.style.width) >= (arrowBottomY - arrowTopY + 8)) ? elH.style.width : null;
+
     if (!errD1)
       settings.t = d1Value;
 
@@ -1124,7 +1048,7 @@ function init(e)
       settings.h = hValue;
 
     elCanvasTemplateInfo.dataset.type = settings.f;
-  }
+  }//draw()
 
   function Arrow(ctx, options)
   {
@@ -1235,8 +1159,8 @@ function init(e)
             const adjust = 0;//a * 100 - 100;
             ctx.lineWidth = options.lineWidth;
             ctx.globalAlpha = options.alpha * (options.fill && a ? a : 1);
-            ctx.strokeStyle = e && options.showError ? options.colorError : colorAdjust(options.color, adjust);
-            ctx.fillStyle = e && options.showError ? options.colorError : colorAdjust(options.color, adjust);
+            ctx.strokeStyle = e && options.showError ? options.colorError : colorBrightness(options.color, adjust);
+            ctx.fillStyle = e && options.showError ? options.colorError : colorBrightness(options.color, adjust);
             if (options.fill)
               ctx.fill();
 
@@ -1307,6 +1231,84 @@ function init(e)
               fillText(...text);
           };
     return Object.assign(draw, options);
+  }//Arrow()
+
+  function showAsFraction(f)
+  {
+    if (f !== undefined)
+      settings.f = f;
+
+    f = settings.f;
+    elMenuFraction.value = f;
+    elMenuFraction.setAttribute("value", f);
+  }
+
+  function dropdown(el)
+  {
+    const elDropdown = el.querySelector(".dropdown-list"),
+          elUl = el.querySelector("ul"),
+          elOption = document.createElement("li"),
+          setting = el.dataset.setting,
+          list = settings.valid[el.dataset.setting],
+          names = settings.names[el.dataset.setting] || [];
+
+    let placeholder;
+    for (let i = 0, val = 1, max = 0, o; i < list.length; i++)
+    {
+      o = elUl.children[i] || elOption.cloneNode(true);
+      if (el.dataset.setting == "p")
+      {
+        val = i ? val * 2 : i+1;
+        o.textContent = !i ? "Round" : "1⁄" + val;
+      }
+      else
+      {
+        val = list[i];
+        o.textContent = names[i] || val;
+      }
+      o.value = val;
+      selected = settings[setting] == val;
+      o.classList.toggle("default", val == settings.default[setting]);
+      o.classList.add("option");
+      o.classList.toggle("selected", selected);
+      if (!elUl.children[i])
+      {
+        elUl.appendChild(o);
+      }
+
+      if (selected)
+        elDropdown.dataset.value = o.textContent;
+
+      elHidden.textContent = o.textContent;
+      if (elHidden.clientWidth > max)
+      {
+        max = elHidden.clientWidth;
+        placeholder = o.textContent;
+      }
+    }
+    elUl.parentNode.parentNode.dataset.placeholder = placeholder;
+    el.querySelector('input[type="checkbox"]').checked = false;
+    if (el._inited)
+      return;
+
+    (el.classList.contains("dropdown-box") ? el : el.querySelector('.dropdown-box')).addEventListener("click", e =>
+    {
+      if (e.target.tagName != "LABEL")
+        popup(el.querySelector('input[type="checkbox"]'), e.target.classList.contains("option"));
+
+      if (!e.target.classList.contains("option"))
+        return;
+
+      settings[setting] = e.target.value;
+      dropdown(el);
+//      closeMenu(setting);
+      if (settings.onChange[setting] instanceof Function)
+        settings.onChange[setting](e.target.value);
+
+      draw(true);
+      e.preventDefault();
+    });
+    el._inited = true;
   }
 
   function toRadians(ang)
@@ -1343,7 +1345,7 @@ function init(e)
     return [(1 - t) * x1 + t * x2, (1 - t) * y1 + t * y2];
   }
 
-  function colorAdjust(color, amount)
+  function colorBrightness(color, amount)
   {
     return '#' + color.match(/([0-9]+)/g)
                       .map(color => ('0'+Math.min(255, Math.max(0, ~~color + ~~(amount * 255 / 100)))
@@ -1387,11 +1389,16 @@ function init(e)
     {
       if (!children[i]) continue;
 
-      const val = i || args[args.length - 1] === false ? args[i] : fractionFormat(fractionLimit(args[i], settings.p), args[i]);
+      const ff = fractionFormat(fractionLimit(args[i], settings.p), args[i]),
+            val = i || args[args.length - 1] === false ? args[i] : ff[0];
       na = isNan(val);
       if (na)
         el.classList.add("na");
 
+      if (!i && ff[1] != ff[2])
+      {
+        el.dataset.up = ff[1] > ff[2];
+      }
       children[i].classList.toggle("na", na);
       children[i].innerHTML = i ? "(" + f(val) + ")" : f(val);
     }
@@ -1428,7 +1435,8 @@ function init(e)
   function round(n, d)
   {
     d = Math.pow(10, d || 2);
-    return Math.round(n * d) / d;
+    d = Math.round(n * d) / d;
+    return d;
   }
 
   function fractionLimit(num, denominator)
@@ -1444,18 +1452,28 @@ function init(e)
 
   function fractionFormat(f, n)
   {
-    return f.replace(/^([0-9]+)\/([0-9]+)|([0-9]+)(\s+([0-9]+)\/([0-9]+))|([0-9]+)/,
+    const r = round(n);
+    const ret = [n, r === Infinity ? 0 : r, parseFloat(new Fraction(f).toString())];
+    ret[0] = f.replace(/^([0-9]+)\/([0-9]+)|([0-9]+)(\s+([0-9]+)\/([0-9]+))|([0-9]+)/,
       (...args) =>
       {
         let r = args[3] || args[7] || "";
         if (args[1] || args[5])
-          r += (r !== "" ? (round((args[1] || args[5]) / (args[2] || args[6])) == round(n % 1) ? " " : "~")
+        {
+          const round1 = round((args[1] || args[5]) / (args[2] || args[6])),
+                round2 = round(n % 1);
+
+          // r += (r !== "" ? " "
+         r += (r !== "" ? (round1 == round2 ? " " : "~")
+          // r += (r !== "" ? (round1 == round2 ? " " : round1 > round2 ? " ▿" : " ▵")
                          : "")
                + `${args[1] || args[5]}⁄${args[2] || args[6]}`;
+        }
         // r += (r !== "" ? " " : "") + `<sup>${args[1] || args[5]}</sup>&frasl;<sub>${args[2] || args[6]}</sub>`;
         return r;
       }
     );
+    return ret;
   }
 
   function setTheme(theme)
