@@ -1036,7 +1036,7 @@ function init(e)
     elH.style.left = x + "px";
     elH.style.top = y - r.height / 2 + "px";
 
-    elH.parentNode.style.marginRight = ((arrowRightX + 4) - parseFloat(elH.style.width) >= (arrowBottomY - arrowTopY + 8)) ? elH.style.width : null;
+    elH.parentNode.style.marginRight = ((arrowRightX + 4) - parseFloat(elH.style.width) >= (arrowBottomY - arrowTopY + 8)) ? elH.style.width :  ((arrowRightX + 4) + parseFloat(elH.style.width)) - (canvasWidth) + "px";
 
     if (!errD1)
       settings.t = d1Value;
@@ -1644,7 +1644,7 @@ function init(e)
   elCanvasCone.addEventListener("mousemove", onMouseMove);
   elCanvasCone.addEventListener("mousedown", onClick);
   elCanvasCone.addEventListener("dblclick", onClick);
-  document.querySelectorAll(".input > input").forEach(e =>
+  document.querySelectorAll(".input input").forEach(e =>
   {
     e.addEventListener("blur", onBlur);
     e.addEventListener("focus", onFocus);
