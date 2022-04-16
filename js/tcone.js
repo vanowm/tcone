@@ -237,11 +237,11 @@ function init(e)
           set: function (target, name, value)
           {
             if (name == "theme")
-              this.theme = ~~value;
+              this.theme = +value;
           },
           get: function (target, name)
           {
-            return name == "theme" ? this.theme : this.colors[name][~~this.theme];
+            return name == "theme" ? this.theme : this.colors[name][+this.theme];
           },
         }),
         fractions = (() =>
@@ -1348,7 +1348,7 @@ function init(e)
   function colorBrightness(color, amount)
   {
     return '#' + color.match(/([0-9]+)/g)
-                      .map(color => ('0'+Math.min(255, Math.max(0, ~~color + ~~(amount * 255 / 100)))
+                      .map(color => ('0'+Math.min(255, Math.max(0, +color + +(amount * 255 / 100)))
                       .toString(16))
                       .substr(-2))
                       .join("");
@@ -1464,8 +1464,8 @@ function init(e)
                 round2 = round(n % 1);
 
           // r += (r !== "" ? " "
-         r += (r !== "" ? (round1 == round2 ? " " : "~")
-          // r += (r !== "" ? (round1 == round2 ? " " : round1 > round2 ? " ▿" : " ▵")
+        //  r += (r !== "" ? (round1 == round2 ? " " : "~")
+          r += (r !== "" ? (round1 == round2 ? " " : round1 > round2 ? "▿" : "▵")
                          : "")
                + `${args[1] || args[5]}⁄${args[2] || args[6]}`;
         }
@@ -1704,7 +1704,7 @@ function init(e)
   elCanvasTemplateInfo.addEventListener("click", e =>
   {
     const f = settings.f;
-    settings.f = ~~!~~elCanvasTemplateInfo.dataset.type;
+    settings.f = +!+elCanvasTemplateInfo.dataset.type;
     draw(true);
     settings.f = f;
     e.preventDefault();

@@ -155,13 +155,13 @@ canvas {
   width: 0.8em;
   margin-left: -0.5em;
 }
-  .result .table > div[data-up] > span:first-of-type::before {
+  /* .result .table > div[data-up] > span:first-of-type::before {
   content: "▿";
 }
 
 .result .table > div[data-up="true"] > span:first-of-type::before {
   content: "▵";
-}
+} */
 
 .result .table > div > span:last-child {
   font-weight: normal;
