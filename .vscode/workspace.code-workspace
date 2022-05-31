@@ -2,14 +2,10 @@
 	"folders": [
 		{
 			"path": ".."
+		},
+		{
+			"path": "..\\..\\..\\..\\php\\pear"
 		}
 	],
-	"settings": {
-		"workbench.colorCustomizations": {
-			"editor.lineHighlightBackground": "#2f2f2f",
-			"editorWhitespace.foreground": "#3f3f3f",
-			"editorUnnecessaryCode.border": "#ff000060",
-			"editorUnnecessaryCode.opacity": "#00000060"
-		}
-	}
+	"settings": {}
 }
