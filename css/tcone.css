@@ -61,7 +61,7 @@ body {
   transition: opacity 0.1s;
 }
 
-:root[notinited] > body {
+:root[notInited] > body {
   opacity: 0;
 }
 
@@ -253,8 +253,8 @@ label.toggle > .options > *
   line-height: 1.4em;
   padding: 0;
   cursor: pointer;
-  color: MenuText;
   color: -moz-DialogText;
+  color: MenuText;
   background-color: -moz-Dialog;
   background-color: Menu;
   width: 100%;
@@ -265,15 +265,15 @@ label.toggle > .options > *
   height: unset;
 }
 
-.dropdown-list {
-  /* padding: 0 0.3em; */
-}
+/* .dropdown-list {
+  padding: 0 0.3em;
+} */
 
-.dropdown input[type="checkbox"]:checked ~ label
+/* .dropdown input[type="checkbox"]:checked ~ label
 {
-  /* z-index: 3; */
-  /* background-color: red; */
-}
+  z-index: 3;
+  background-color: red;
+} */
 
 .dropdown input[type="checkbox"]:checked ~ .dropdown-list > ul {
   border: 1px solid #7f7f7f7f;
@@ -302,9 +302,9 @@ label.toggle > .options > *
   /* background-color: blue; */
 }
 
-nav > .close-overlay {
-  /* backdrop-filter: brightness(0.5); */
-}
+/* nav > .close-overlay {
+  backdrop-filter: brightness(0.5);
+} */
 
 .close-overlay ~ * .close-overlay
 {
@@ -479,10 +479,10 @@ nav > input
   padding: 0;
   margin: 0;
   min-width: 8em;
-  background-color: Menu;
   background-color: -moz-Dialog;
-  color: MenuText;
+  background-color: Menu;
   color: -moz-DialogText;
+  color: MenuText;
   /* z-index: 2; */
   position: absolute;
   top: 10px;
@@ -560,7 +560,7 @@ nav > input:not(:checked) ~ div.menu
   opacity: 1;
 }
 
-.navicon {
+.navIcon {
   background-color: var(--textColor);
   display: block;
   height: 0.1em;
@@ -572,11 +572,11 @@ nav > input:not(:checked) ~ div.menu
   transition: background-color 0.3s;
 }
 
-.navicon:before {
+.navIcon:before {
   top: 0.5em;
 }
 
-.navicon:after {
+.navIcon:after {
   top: -0.5em;
 }
 
@@ -586,14 +586,14 @@ nav > input:not(:checked) ~ div.menu
   right: 0.4em;
 }
 
-#main-menu:checked ~ * .navicon
+#main-menu:checked ~ * .navIcon
 {
   background-color: transparent;
   width: 70%;
   transition: top 0.1s ease, right 0.1s ease;
 }
 
-#main-menu:checked ~ * .navicon:before
+#main-menu:checked ~ * .navIcon:before
 {
   background-color: MenuText;
   transform: rotate(-135deg);
@@ -601,7 +601,7 @@ nav > input:not(:checked) ~ div.menu
   right: 0;
 }
 
-#main-menu:checked ~ * .navicon:after
+#main-menu:checked ~ * .navIcon:after
 {
   background-color: MenuText;
   transform: rotate(135deg);
@@ -609,7 +609,7 @@ nav > input:not(:checked) ~ div.menu
   right: 0;
 }
 
-.navicon:before, .navicon:after {
+.navIcon:before, .navIcon:after {
   background-color: var(--textColor);
   display: block;
   width: 100%;
@@ -619,8 +619,8 @@ nav > input:not(:checked) ~ div.menu
   transition: top .1s ease, right .1s ease, transform .3s ease;
 }
 
-#main-menu:checked ~ * .navicon:before,
-#main-menu:checked ~ * .navicon:after
+#main-menu:checked ~ * .navIcon:before,
+#main-menu:checked ~ * .navIcon:after
 {
   transition: top .1s ease-out, right .1s ease, transform .3s ease-out;
 }
@@ -647,7 +647,7 @@ label.toggle[value="5"] .options > :nth-child(6)
   text-align: center;
   /* margin-right: 1em; */
   line-height: 2em;
-  color: graytext;
+  color: greytext;
 }
 
 .font08

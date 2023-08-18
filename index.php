@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en-US" notinited>
+<html lang="en-US" notInited>
 
 <head>
   <meta charset="utf-8">
@@ -27,9 +27,9 @@
       <div class="container">
         <canvas id="cone"></canvas>
         <span tabindex="0" onfocus="h.focus();"></span>
-        <input id="d1" title="Top Diameter" type="tel">
-        <input id="d2" title="Bottom Diameter" type="tel">
-        <input id="h" title="Height" type="tel">
+        <input id="diamTop" title="Top Diameter" type="tel">
+        <input id="diamBot" title="Bottom Diameter" type="tel">
+        <input id="height" title="Height" type="tel">
         <span tabindex="0" onfocus="d1.focus();"></span>
       </div>
       <div class="result">
@@ -39,7 +39,7 @@
           <div id="l1"><label>Length <label>L1</label>:</label><span></span><span></span></div>
           <div id="l2"><label>Length <label>L2</label>:</label><span></span><span></span></div>
           <div id="l3"><label>Length <label>L3</label>:</label><span></span><span></span></div>
-          <div id="height"><label>Length <label>L4</label>:</label><span></span><span></span></div>
+          <div id="l4"><label>Length <label>L4</label>:</label><span></span><span></span></div>
           <div id="angle"><label><label>Angle</label>:</label><span></span><span></span></div>
         </div>
         <div class="download">Download:
@@ -73,7 +73,7 @@
         <label data-type="reset" class="value right font08" title="Reset all">Reset all</label>
       </div>
       <label for="main-menu" class="menu-icon" title="Menu">
-        <span class="navicon" aria-label="Hamburger menu 'icon'"></span>
+        <span class="navIcon" aria-label="Hamburger menu 'icon'"></span>
       </label>
     </nav>
   </header>
