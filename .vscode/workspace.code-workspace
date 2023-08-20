@@ -7,5 +7,12 @@
 			"path": "..\\..\\..\\..\\php\\pear"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"editor.tabSize": 4,
+		"intelephense.environment.documentRoot": "Z:/www/htdocs/experiments/",
+		"eslint.options": {
+			"overrideConfigFile": ".\\.vscode\\.eslintrc.json"
+		},
+		"eslint.runtime": "node",
+	}
 }
