@@ -1,8 +1,15 @@
 {
     "extends": [
       "eslint:recommended",
-      "plugin:sonarjs/recommended"
-    ],
+      "plugin:sonarjs/recommended",
+      "plugin:eslint-comments/recommended",
+      "plugin:promise/recommended",
+      "plugin:unicorn/recommended",
+      "plugin:json-schema-validator/recommended",
+      "plugin:import/errors",
+      "plugin:import/warnings",
+      "plugin:import/typescript" // make sure you add this one for ts projects
+  ],
     "settings": {
     },
     "parserOptions": {
@@ -14,9 +21,16 @@
         "node": false
     },
     "plugins": [
-      "sonarjs"
+      "sonarjs",
+      "promise",
+      "import",
+      "unicorn"
     ],
     "rules": {
+      "eslint-comments/disable-enable-pair": [
+        "error",
+        { "allowWholeFile": true }
+      ],
       "arrow-body-style": ["error", "as-needed", {"requireReturnForObjectLiteral": true}],
       "arrow-parens": ["error", "as-needed"],
       "arrow-spacing": "error",
@@ -73,6 +87,7 @@
       "no-useless-escape": "error",
       "no-useless-rename": "error",
       "no-useless-return": "error",
+      "no-var": "error",
       "no-whitespace-before-property": "error",
       "one-var": ["error", "never"],
       "prefer-arrow-callback": "error",
@@ -82,7 +97,22 @@
       "semi": "error",
       "sonarjs/cognitive-complexity": "off",
       "sonarjs/no-duplicate-string": "off",
-      "space-before-function-paren": "error"
+      "space-before-function-paren": "error",
+      "promise/always-return": "error",
+      "promise/no-return-wrap": "error",
+      "promise/param-names": "error",
+      "promise/catch-or-return": "error",
+      "promise/no-native": "off",
+      "promise/no-nesting": "warn",
+      "promise/no-promise-in-callback": "warn",
+      "promise/no-callback-in-promise": "warn",
+      "promise/avoid-new": "warn",
+      "promise/no-new-statics": "error",
+      "promise/no-return-in-finally": "warn",
+      "promise/valid-params": "warn",
+      "unicorn/prefer-query-selector": "off",
+      "unicorn/no-array-callback-reference": "off",
+      "unicorn/prefer-module": "off"
 
       // "no-empty-function": "error",
       // "no-extra-parens": ["error", "all", {"nestedBinaryExpressions": false}],
@@ -93,4 +123,3 @@
       // "no-return-assign": "error",
     }
   }
-  

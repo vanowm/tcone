@@ -26,26 +26,26 @@
     <div class="input">
       <div class="container">
         <canvas id="cone"></canvas>
-        <span tabindex="0" onfocus="h.focus();"></span>
+        <span tabindex="0" onfocus="height.focus();"></span>
         <input id="diamTop" title="Top Diameter" type="tel">
         <input id="diamBot" title="Bottom Diameter" type="tel">
         <input id="height" title="Height" type="tel">
-        <span tabindex="0" onfocus="d1.focus();"></span>
+        <span tabindex="0" onfocus="diamTop.focus();"></span>
       </div>
       <div class="result">
         <div id="result" class="table">
-          <div id="r1"><label>Radius <label>R1</label>:</label><span></span><span></span></div>
-          <div id="r2"><label>Radius <label>R2</label>:</label><span></span><span></span></div>
-          <div id="l1"><label>Length <label>L1</label>:</label><span></span><span></span></div>
-          <div id="l2"><label>Length <label>L2</label>:</label><span></span><span></span></div>
-          <div id="l3"><label>Length <label>L3</label>:</label><span></span><span></span></div>
-          <div id="l4"><label>Length <label>L4</label>:</label><span></span><span></span></div>
+          <div id="radTop"><label><span>Radius</span><label>Top</label>:</label><span></span><span></span></div>
+          <div id="radBot"><label><span>Radius</span><label>Bot</label>:</label><span></span><span></span></div>
+          <div id="lenTop"><label><span>Length</span><label>Top</label>:</label><span></span><span></span></div>
+          <div id="lenBot"><label><span>Length</span><label>Bot</label>:</label><span></span><span></span></div>
+          <div id="lenDia"><label><span>Length</span><label>Diag</label>:</label><span></span><span></span></div>
+          <div id="lenSide"><label><span>Length</span><label>Side</label>:</label><span></span><span></span></div>
           <div id="angle"><label><label>Angle</label>:</label><span></span><span></span></div>
         </div>
         <div class="download">Download:
           <a id="dxf" title="DXF"></a>
-          <a id="pdf" title="PDF"></a>
           <a id="png" title="PNG"></a>
+          <a id="pdf" title="PDF"></a>
         </div>
       </div>
     </div>
@@ -62,18 +62,18 @@
   <canvas id="canvas" width="300" height="300"></canvas>
   <header>
     <nav id="navbar">
-      <input id="main-menu" type="checkbox" data-popup="mainMenu">
-      <label for="main-menu" class="close-overlay" title=""></label>
+      <input id="mainMenu" type="checkbox" data-popup="mainMenu">
+      <label for="mainMenu" class="close-overlay" title=""></label>
       <div class="menu popup">
         <header>Options</header>
-        <div data-setting="p" data-type="dropdown" title="Precision">Precision:</div>
+        <div data-setting="precision" data-type="dropdown" title="Precision">Precision:</div>
         <div data-setting="dpi" data-type="dropdown" title="Image (print) DPI">Image DPI:</div>
         <label data-type="fraction" class="value toggle" title="Show as fractions">Show as fractions: <span class="options"><span>off</span><span>on</span></span></label>
-        <div data-setting="d" data-type="dropdown" title="Theme">Theme:</div>
+        <div data-setting="theme" data-type="dropdown" title="Theme">Theme:</div>
         <label data-type="reset" class="value right font08" title="Reset all">Reset all</label>
       </div>
-      <label for="main-menu" class="menu-icon" title="Menu">
-        <span class="navIcon" aria-label="Hamburger menu 'icon'"></span>
+      <label for="mainMenu" class="menu-icon" title="Menu">
+        <span class="nav-icon" aria-label="Hamburger menu 'icon'"></span>
       </label>
     </nav>
   </header>
