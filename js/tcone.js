@@ -1,4 +1,4 @@
-/* global Fraction, changeDpiBlob, require */
+/* global Fraction, require */
 (() =>
 {
 "use strict";
@@ -15,9 +15,9 @@ function init ()
 		element.style.display = "none";
 		document.body.append(element);
 		let color;
-		for(let index = 0, c = ["canvastext", "initial", "unset"]; index < c.length && !color; index++ )
+		for (let i = 0, c = ["canvastext", "initial", "unset"]; i < c.length && !color; i++)
 		{
-			element.style.color = c[index];
+			element.style.color = c[i];
 			element.style.colorScheme = "dark";
 			color = getComputedStyle(element).color;
 			element.style.colorScheme = "light";
@@ -29,27 +29,6 @@ function init ()
 
 	document.documentElement.classList.toggle("has-dark", hasDarkMode);
 
-	const EL = new Proxy(id => document.getElementById(id), {
-		get: (target, name) => target(name)
-	});
-
-	const elementDiamTopInput = EL.diamTop;
-	const elementDiamBotInput = EL.diamBot;
-	const elementRadiusTop = EL.radTop;
-	const elementRadiusBot = EL.radBot;
-	const elementHeightInput = EL.height;
-	const elementLengthTop = EL.lenTop;
-	const elementLengthBot = EL.lenBot;
-	const elementLengthDia = EL.lenDia;
-	const elementLengthSide = EL.lenSide;
-	const elementAngle = EL.angle;
-	const elementHidden = EL.hidden;
-	const elementCanvasCone = EL.cone;
-	const elementCanvasTemplate = EL.coneTemplate;
-	const elementCanvasTemplateInfo = EL.coneTemplateInfo;
-	const elementNavbar = EL.navbar;
-	const elementMenuFraction = document.querySelector("[data-type=\"fraction\"]");
-	const contextCone = elementCanvasCone.getContext("2d");
 	const SETTINGS = (() =>
 	{
 		const settings = {
@@ -75,7 +54,7 @@ function init ()
 				names: ["Light", "Dark", "Auto"],
 				onChange: (name, value) =>
 				{
-					color.theme = value === 2 ? window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches : value;
+					COLOR.theme = value === 2 ? window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches : value;
 					setTheme(undefined, false);
 					// draw(true);
 				},
@@ -100,13 +79,16 @@ function init ()
 			fractions: /* show as fractions */
 			{
 				value: 1,
-				valid: [0, 1]
+				valid: [0, 1],
+				onChange: showAsFraction
 			}
 		};
-		const settingsName = "tconeData";
+		const settingsName = "tconeSettings";
 		const settingsData = JSON.parse(localStorage.getItem(settingsName)) || {};
 		const settingsGetData = key => new Proxy(settings, {
-			get: (target, name) => (Object.prototype.hasOwnProperty.call(settings, name) ? settings[name][key] : undefined),
+			get: (target, name) => (Object.prototype.hasOwnProperty.call(settings, name)
+				? settings[name][key]
+				: undefined),
 			set: () => true //read-only
 		});
 		const settingsCommands = {
@@ -203,8 +185,9 @@ function init ()
 
 		};
 		return new Proxy(settingsData, settingsHandler);
-	})();
-	const color = (() =>
+	})(); //SETTINGS
+
+	const COLOR = (() =>
 	{
 		let theme = SETTINGS.theme === 2
 			? window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -242,41 +225,29 @@ function init ()
 		};
 
 		return new Proxy(colors, handler);
-	})();
+	})();//COLOR
 
-	const fractions = (() =>
-	{
-		const list = {
-			"½": "1/2",
-			"⅓": "1/3",
-			"¼": "1/4",
-			"⅕": "1/5",
-			"⅙": "1/6",
-			"⅐": "1/7",
-			"⅛": "1/8",
-			"⅑": "1/9",
-			"⅒": "1/10",
-			"⅔": "2/3",
-			"⅖": "2/5",
-			"¾": "3/4",
-			"⅗": "3/5",
-			"⅜": "3/8",
-			"⅘": "4/5",
-			"⅚": "5/6",
-			"⅝": "5/8",
-			"⅞": "7/8",
-		};
-		for(const key in list)
-			list[list[key]] = key;
-
-		return list;
-	})();
-	const fractionGlyphs = Object.keys(fractions).filter(a => a.length < 2).join("");
-	const fractionFilter = new RegExp("[" + fractionGlyphs + "]", "g");
+	const elementDiamTopInput = EL.diamTop;
+	const elementDiamBotInput = EL.diamBot;
+	const elementRadiusTop = EL.radTop;
+	const elementRadiusBot = EL.radBot;
+	const elementHeightInput = EL.height;
+	const elementLengthTop = EL.lenTop;
+	const elementLengthBot = EL.lenBot;
+	const elementLengthDia = EL.lenDia;
+	const elementLengthSide = EL.lenSide;
+	const elementAngle = EL.angle;
+	const elementHidden = EL.hidden;
+	const elementCanvasCone = EL.cone;
+	const elementCanvasTemplate = EL.coneTemplate;
+	const elementCanvasTemplateInfo = EL.coneTemplateInfo;
+	const elementNavbar = EL.navbar;
+	const elementMenuFraction = document.querySelector("[data-type=\"fraction\"]");
+	const contextCone = elementCanvasCone.getContext("2d");
 	const canvasWidth = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--size"));
 	const canvasHeight = canvasWidth;
 	const lineWidth = 1;
-				/* main body line width */
+	/* main body line width */
 	const showErrorSides = 1;
 
 	/** show as fraction */
@@ -290,7 +261,7 @@ function init ()
 	// /** DPI dropdown */
 	// dropdown(elDpi);
 
-//--------------------------------[ defaults ]------------------------------------
+	//--------------------------------[ defaults ]------------------------------------
 
 	let previousFocus = elementDiamTopInput;
 	let previousHighlightHover;
@@ -310,12 +281,12 @@ function init ()
 	elementHeightInput.value = SETTINGS.height;
 	// closeMenu();
 	setTheme();
-	onFocus({target: previousFocus});
+	onFocus({ target: previousFocus });
 
 	if (initialized)
 		return;
 
-//--------------------------------[ functions ]-----------------------------------
+	//--------------------------------[ functions ]-----------------------------------
 
 	function drawImage (options) //canvas, d1, d2, h, _lineWidth, strokeColor, fillColor, patternOnly, fullSize) =>
 	{
@@ -325,14 +296,18 @@ function init ()
 		const height = options.height;
 		const _lineWidth = options.lineWidth || lineWidth;
 		const backgroundColor = options.background || "transparent";
-		const strokeColor = options.stroke || color.stroke;
-		const fillColor = options.fill || color.fill;
+		const strokeColor = options.stroke || COLOR.stroke;
+		const fillColor = options.fill || COLOR.fill;
 		const templateOnly = options.templateOnly;
 		const dpi = options.dpi;
 
 		const data = (() =>
 		{
-			/** using proxy object to convert any variables that start with _ to percentage value and $ = round to 2 decimal places */
+			/**
+				using proxy object to convert any variables that start with:
+				_ = percentage value
+				$ = round to 2 decimal places
+			*/
 			const arcEnd = (c1, c2, radius, angleRad, isBottom) => (!Number.isFinite(radius) || !radius
 				? [
 					c1,
@@ -342,30 +317,29 @@ function init ()
 				]
 				: [
 					/* coordinates of an arc */
-					c1 + Math.cos(Math.PI / 2 - angleRad / 2) * radius /* x1 */ ,
-					c2 + Math.sin(Math.PI / 2 - angleRad / 2) * radius /* y1 */ ,
-					c1 + Math.cos(Math.PI / 2 + angleRad / 2) * radius /* x2 */ ,
-					c2 + Math.sin(Math.PI / 2 + angleRad / 2) * radius /* y2 */ ,
+					c1 + Math.cos(Math.PI / 2 - angleRad / 2) * radius /* x1 */,
+					c2 + Math.sin(Math.PI / 2 - angleRad / 2) * radius /* y1 */,
+					c1 + Math.cos(Math.PI / 2 + angleRad / 2) * radius /* x2 */,
+					c2 + Math.sin(Math.PI / 2 + angleRad / 2) * radius /* y2 */,
 				]);
 			const diameterTop = Math.min(top, bottom);
 			const diameterBot = Math.max(top, bottom);
-			const radiusTop = diameterTop / 2 /* top radius */ ;
-			const radiusBot = diameterBot / 2 /* bottom radius */ ;
+			const radiusTop = diameterTop / 2 /* top radius */;
+			const radiusBot = diameterBot / 2 /* bottom radius */;
 			const circumferenceTop = radiusTop * Math.PI * 2;
 			const circumferenceBot = radiusBot * Math.PI * 2;
 			const difDiameterBotTop = diameterBot - diameterTop;
-			const heightTriangle = (height * diameterBot) / (difDiameterBotTop || 0) /* triangle height (center of radius to bottom of the cone) */ ;
-			// const b = radiusBot - radiusTop ? radiusBot - radiusTop : 0 /* difference between top and bottom */ ;
+			const heightTriangle = (height * diameterBot) / (difDiameterBotTop || 0) /* triangle height (center of radius to bottom of the cone) */;
 			const difRadiusBotTop = radiusBot - radiusTop;/* difference between top and bottom */
-			const radiusHeight = Math.hypot(height, difRadiusBotTop) /* radius for cone height (cone slope length) */ ;
-			const templateRadiusBot = Math.hypot(heightTriangle, radiusBot) /* pattern outer radius */ ;
-			const templateRadiusTop = templateRadiusBot - radiusHeight /* pattern inner radius */ ;
-			const circumference = Math.PI * diameterBot /* cone circumference */ ;
-			// const cT = Math.PI * 2 * r2 /* total pattern circumference */ ;
-			const templateAngRadians = top === bottom ? Math.PI : circumference / templateRadiusBot /* angle in radians */ ;
-			const templateAngDegrees = (templateAngRadians * 180) / Math.PI /*(360 * c) / cT*/ /* angle in degrees */ ;
-			const templateLengthTop = templateAngRadians * templateRadiusTop /* length of top arc */ ;
-			const templateLengthBot = templateAngRadians * templateRadiusBot /* length of bottom arc */ ;
+			const radiusHeight = Math.hypot(height, difRadiusBotTop) /* radius for cone height (cone slope length) */;
+			const templateRadiusBot = Math.hypot(heightTriangle, radiusBot) /* pattern outer radius */;
+			const templateRadiusTop = templateRadiusBot - radiusHeight /* pattern inner radius */;
+			const circumference = Math.PI * diameterBot /* cone circumference */;
+			// const circumferenceTotal = Math.PI * 2 * r2 /* total pattern circumference */ ;
+			const templateAngRadians = top === bottom ? Math.PI : circumference / templateRadiusBot /* angle in radians */;
+			const templateAngDegrees = (templateAngRadians * 180) / Math.PI /*(360 * c) / cT*/ /* angle in degrees */;
+			const templateLengthTop = templateAngRadians * templateRadiusTop /* length of top arc */;
+			const templateLengthBot = templateAngRadians * templateRadiusBot /* length of bottom arc */;
 			const templateArcEndTop = arcEnd(0, 0, templateRadiusTop, templateAngRadians);
 			const templateArcEndBot = arcEnd(0, 0, templateRadiusBot, templateAngRadians, true);
 			const l1 = lineLength(...templateArcEndTop);
@@ -484,7 +458,7 @@ function init ()
 		context.beginPath();
 		if (Number.isFinite(data.templateRadiusTop))
 		{
-	// console.log(data.x, data.y, data._templateRadiusTop, data);
+			// console.log(data.x, data.y, data._templateRadiusTop, data);
 			context.beginPath();
 			context.arc(
 				data.x,
@@ -534,8 +508,8 @@ function init ()
 		}
 		else
 		{
-			const x = data.topArcEnds[0] - data.x + _lineWidth/2;
-			const y = data.topArcEnds[1] - data.y + _lineWidth/2;
+			const x = data.topArcEnds[0] - data.x + _lineWidth / 2;
+			const y = data.topArcEnds[1] - data.y + _lineWidth / 2;
 			const w = data._circumferenceTop;
 			const h = data._height;
 
@@ -582,12 +556,13 @@ function init ()
 				|| previousHighlightHover !== highlightHover)
 		)
 			return;
+
 		previousErrorDiamTop = errorDiamTop;
 		previousErrorDiamBot = errorDiamBot;
 		previousErrorHeight = errorHeight;
 		previousHighlightHover = highlightHover;
-		//  if (e)
-		//   lastFocus = e.target;
+		//if (e)
+		// lastFocus = e.target;
 		inputWidth(elementDiamTopInput);
 		elementDiamTopInput.classList.toggle("error", errorDiamTop);
 		inputWidth(elementDiamBotInput);
@@ -603,9 +578,9 @@ function init ()
 		elementCanvasTemplate.height = canvasHeight;
 		elementCanvasTemplate.style.width = canvasWidth + "px";
 		elementCanvasTemplate.style.height = canvasHeight + "px";
-		contextCone.strokeStyle = color.stroke;
+		contextCone.strokeStyle = COLOR.stroke;
 		contextCone.fillStyle = "transparent";
-		//   ctx.fillStyle = color.fill;
+		// ctx.fillStyle = color.fill;
 		contextCone.fillRect(0, 0, elementCanvasCone.width, elementCanvasCone.width);
 
 		let arrow = new Arrow(contextCone);
@@ -619,7 +594,7 @@ function init ()
 		const _r2 = n2p(diamBot / 2);
 		const dMax = Math.max(diamTop, diamBot);
 		const ratio = Math.min(dMax, height) / Math.max(dMax, height);
-		const t = Math.abs(ratio* height % 18 - 18); //Math.min(1, Math.max(0.1, tt)),
+		const t = Math.abs(ratio * height % 18 - 18); //Math.min(1, Math.max(0.1, tt)),
 		const _r1Tilt = n2p(Math.max(0, diamTop / (t || 1)));
 		const _r2Tilt = n2p(Math.max(0, diamBot / (t || 1)));
 		const x = n2p(Math.max(diamTop, diamBot)) / 2 + lineWidth;
@@ -714,29 +689,29 @@ function init ()
 
 					break;
 				}
-			// No default
+				// No default
 			}
 			contextCone.fill();
 		};
 		if (highlighted)
-			highlight(highlighted, color.fill);
+			highlight(highlighted, COLOR.fill);
 
 		if (highlightHover === 1 && highlighted !== elementDiamTopInput)
-			highlight(elementDiamTopInput, color.fillHover);
+			highlight(elementDiamTopInput, COLOR.fillHover);
 		else if (highlightHover === 2 && highlighted !== elementDiamBotInput)
-			highlight(elementDiamBotInput, color.fillHover);
+			highlight(elementDiamBotInput, COLOR.fillHover);
 		else if (highlightHover === 3 && highlighted !== elementHeightInput)
-			highlight(elementHeightInput, color.fillHover);
+			highlight(elementHeightInput, COLOR.fillHover);
 
 		contextCone.beginPath();
 		contextCone.setLineDash([_r2Tilt / 4, _r2Tilt / 3]);
 		contextCone.lineWidth /= 2;
 		contextCone.strokeStyle = errorDiamBot && showErrorSides
-			? color.error
-			: color.stroke;
-			// : highlightHover == 2
-			// 	? color.stroke
-			// 	: color.stroke;
+			? COLOR.error
+			: COLOR.stroke;
+		// : highlightHover == 2
+		// 	? color.stroke
+		// 	: color.stroke;
 		contextCone.ellipse(
 			x,
 			_height - _r2Tilt + offsetY,
@@ -754,11 +729,11 @@ function init ()
 		contextCone.beginPath();
 		contextCone.strokeStyle =
 			errorHeight && showErrorSides ?
-				color.error :
-				color.stroke;
-				// highlightHover == 3 ?
-				// 	color.stroke :
-				// 	color.stroke;
+				COLOR.error :
+				COLOR.stroke;
+		// highlightHover == 3 ?
+		// 	color.stroke :
+		// 	color.stroke;
 		contextCone.moveTo(x + _r1, _r1Tilt + offsetY);
 		contextCone.lineTo(arrowBottomRight, _height - _r2Tilt + offsetY); //right side
 		contextCone.moveTo(x - _r1, _r1Tilt + offsetY);
@@ -769,11 +744,11 @@ function init ()
 		contextCone.beginPath();
 		contextCone.strokeStyle =
 			errorDiamTop && showErrorSides ?
-				color.error :
-				color.stroke;
-				// highlightHover == 1 || highlightHover == 3 ?
-				// 	color.stroke :
-				// 	color.stroke;
+				COLOR.error :
+				COLOR.stroke;
+		// highlightHover == 1 || highlightHover == 3 ?
+		// 	color.stroke :
+		// 	color.stroke;
 		contextCone.ellipse(x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI); //top ellipse close side
 		contextCone.stroke();
 
@@ -781,28 +756,28 @@ function init ()
 		contextCone.beginPath();
 		contextCone.strokeStyle =
 			errorDiamTop && showErrorSides ?
-				color.error :
-				color.stroke;
-				// highlightHover == 1 || highlightHover == 3 ?
-				// 	color.stroke :
-				// 	color.stroke;
+				COLOR.error :
+				COLOR.stroke;
+		// highlightHover == 1 || highlightHover == 3 ?
+		// 	color.stroke :
+		// 	color.stroke;
 		contextCone.ellipse(x, _r1Tilt + offsetY, _r1, _r1Tilt, 0, 0, Math.PI, true); //top ellipse far side
 		contextCone.stroke();
 
 		contextCone.beginPath();
 		contextCone.strokeStyle =
 			errorDiamBot && showErrorSides ?
-				color.error :
-				color.stroke;
-				// highlightHover == 2 || highlightHover == 3 ?
-				// 	color.stroke :
-				// 	color.stroke;
+				COLOR.error :
+				COLOR.stroke;
+		// highlightHover == 2 || highlightHover == 3 ?
+		// 	color.stroke :
+		// 	color.stroke;
 		contextCone.ellipse(x, _height - _r2Tilt + offsetY, _r2, _r2Tilt, 0, 0, Math.PI); //bottom ellipse close side
 		contextCone.stroke();
 
 		//---------------------------[ generate preview ]-----------------------------
-		const data = drawImage({canvas: elementCanvasTemplate, top: diamTop, bottom: diamBot, height: height, lineWidth: lineWidth, templateOnly: false});
-		console.log(data);
+		const data = drawImage({ canvas: elementCanvasTemplate, top: diamTop, bottom: diamBot, height: height, lineWidth: lineWidth, templateOnly: false });
+		// console.log(data);
 		//-----------------------------[ generate DXF ]-------------------------------
 		(() =>
 		{
@@ -810,7 +785,7 @@ function init ()
 			if (link._prev && link._prev.diamTop === diamTop && link._prev.diamBot === diamBot && link._prev.height === height)
 				return;
 
-			link._prev = {diamTop, diamBot, height};
+			link._prev = { diamTop, diamBot, height };
 			const DXF = require("Drawing");
 			const dxf = new DXF();
 			dxf.setUnits("Inches");
@@ -828,13 +803,13 @@ function init ()
 			dxf.header("ACADVER", [[1, "AC1500"]]);
 			// const vY = -(data.templateRadiusBot - r2e[1] + r1e[1])/2;
 			let viewportX = data.circumferenceTop / 2;
-			let viewportY = height /2 ;
+			let viewportY = height / 2;
 			let viewportWidth = data.circumferenceTop / 1.5;
 			// let viewportHeight = 0;
 			const isRectangle = diamTop === diamBot;
 			if (!isRectangle) //not rectangle
 			{
-/* failed attempt to calculate viewport size */
+				/* failed attempt to calculate viewport size */
 				// const mod = (n, m) => ((n % m) + m) % m;
 				// const arcBoundingBox = (startAngle, endAngle, radius) =>
 				// {
@@ -856,25 +831,25 @@ function init ()
 				// };
 				viewportX = Math.min(arcEndTop[0], arcEndBot[0]);
 				viewportY = -(4 * Math.sin(data.angleRad / 2)
-									* (Math.pow(data.templateRadiusBot, 3) - Math.pow(data.templateRadiusTop, 3)))
-									/ (3 * data.angleRad * (data.templateRadiusBot * data.templateRadiusBot - data.templateRadiusTop * data.templateRadiusTop));
+					* (Math.pow(data.templateRadiusBot, 3) - Math.pow(data.templateRadiusTop, 3)))
+					/ (3 * data.angleRad * (data.templateRadiusBot * data.templateRadiusBot - data.templateRadiusTop * data.templateRadiusTop));
 				viewportWidth = arcEndBot[1] > 0
 					? data.templateRadiusBot * 2
 					: Math.max(data.lineLength(...arcEndBot), data.templateRadiusBot - (data.templateRadiusBot - Math.abs(arcEndTop[1])));
-// 				const angleStart = Math.PI - arcStartAngle;
-// 				const angleEnd = Math.PI - arcEndAngle;
-// 				const boundingBoxTop = arcBoundingBox(angleStart, angleEnd, data.templateRadiusTop);
-// 				const boundingBoxBottom = arcBoundingBox(angleStart, angleEnd, data.templateRadiusBot);
-// 				viewportX = Math.min(boundingBoxTop.left, boundingBoxBottom.left);
-// 				viewportY = Math.min(boundingBoxTop.bottom, boundingBoxBottom.bottom);
-// 				viewportWidth = Math.max(boundingBoxTop.right, boundingBoxBottom.right) - viewportX;
-// 				viewportHeight = Math.max(boundingBoxTop.top, boundingBoxBottom.top) - viewportY;
-// 				dxf.drawRect(viewportX, viewportY, viewportWidth, viewportHeight);
-// 				dxf.drawRect(boundingBoxTop.left, boundingBoxTop.bottom, boundingBoxTop.right - boundingBoxTop.left, boundingBoxTop.top - boundingBoxTop.bottom);
-// 				dxf.drawRect(boundingBoxBottom.left, boundingBoxBottom.bottom, boundingBoxBottom.right - boundingBoxBottom.left, boundingBoxBottom.top - boundingBoxBottom.bottom);
-// console.log({arcEndTop, arcEndBot, arcStartAngle, arcEndAngle, arcStartAngleDeg: toDegree(arcStartAngle), arcEndAngleDeg: toDegree(arcEndAngle), angleStartDeg: toDegree(angleStart), angleEndDeg: toDegree(angleEnd)});
-// console.log({boundingBoxTop, boundingBoxBottom});
-// console.log({viewportX, viewportY, viewportWidth, viewportHeight});
+				// 				const angleStart = Math.PI - arcStartAngle;
+				// 				const angleEnd = Math.PI - arcEndAngle;
+				// 				const boundingBoxTop = arcBoundingBox(angleStart, angleEnd, data.templateRadiusTop);
+				// 				const boundingBoxBottom = arcBoundingBox(angleStart, angleEnd, data.templateRadiusBot);
+				// 				viewportX = Math.min(boundingBoxTop.left, boundingBoxBottom.left);
+				// 				viewportY = Math.min(boundingBoxTop.bottom, boundingBoxBottom.bottom);
+				// 				viewportWidth = Math.max(boundingBoxTop.right, boundingBoxBottom.right) - viewportX;
+				// 				viewportHeight = Math.max(boundingBoxTop.top, boundingBoxBottom.top) - viewportY;
+				// 				dxf.drawRect(viewportX, viewportY, viewportWidth, viewportHeight);
+				// 				dxf.drawRect(boundingBoxTop.left, boundingBoxTop.bottom, boundingBoxTop.right - boundingBoxTop.left, boundingBoxTop.top - boundingBoxTop.bottom);
+				// 				dxf.drawRect(boundingBoxBottom.left, boundingBoxBottom.bottom, boundingBoxBottom.right - boundingBoxBottom.left, boundingBoxBottom.top - boundingBoxBottom.bottom);
+				// console.log({arcEndTop, arcEndBot, arcStartAngle, arcEndAngle, arcStartAngleDeg: toDegree(arcStartAngle), arcEndAngleDeg: toDegree(arcEndAngle), angleStartDeg: toDegree(angleStart), angleEndDeg: toDegree(angleEnd)});
+				// console.log({boundingBoxTop, boundingBoxBottom});
+				// console.log({viewportX, viewportY, viewportWidth, viewportHeight});
 			}
 			dxf.setViewport(viewportX, viewportY, viewportWidth);
 			if (diamTop === diamBot)
@@ -890,59 +865,73 @@ function init ()
 					true
 				);
 
-			setTimeout(() =>
-			{
-				link.setAttribute(
-					"download",
-					`cone_template_${data.$diameterTop}x${data.$diameterBot}x${data.$height}.dxf`
-				);
-				link.href = URL.createObjectURL(new Blob([dxf.toDxfString()],
-					{
-						type: "application/dxf",
-					})
-				);
-			});
+			// setTimeout(() =>
+			// {
+			link.setAttribute(
+				"download",
+				`cone_template_${data.$diameterTop}x${data.$diameterBot}x${data.$height}.dxf`
+			);
+			link.href = URL.createObjectURL(new Blob([dxf.toDxfString()],
+				{
+					type: "application/dxf",
+				})
+			);
+			// });
 		})();
-		//--------------------------[ generate DXF end ]-------------------------------
+		//--------------------------[ End generate DXF ]-------------------------------
 
 		//----------------------------[ generate PNG ]--------------------------------
 		(() =>
 		{
 			const link = EL.png;
-			if (link._prev && link._prev.diamTop === diamTop && link._prev.diamBot === diamBot && link._prev.height === height && link._prev.dpi === SETTINGS.dpi)
+			if (link._prev
+				&& link._prev.diamTop === diamTop
+				&& link._prev.diamBot === diamBot
+				&& link._prev.height === height
+				&& link._prev.dpi === SETTINGS.dpi)
 				return;
 
-			link._prev = {diamTop, diamBot, height, dpi: SETTINGS.dpi};
+			link._prev = { diamTop, diamBot, height, dpi: SETTINGS.dpi };
+			// setTimeout(() =>
+			// {
+			const canvas = draw.canvas || document.createElement("canvas");
+			draw.canvas = canvas;
+			drawImage(
+				{
+					canvas,
+					top: diamTop,
+					bottom: diamBot,
+					height: height,
+					lineWidth: 1,
+					stroke: "black",
+					background: "white",
+					fill: "transparent",
+					templateOnly: true,
+					dpi: SETTINGS.dpi
+				});
+
 			link.removeAttribute("download");
 			link.removeAttribute("href");
-			setTimeout(() =>
+			link.classList.add("loading");
+			link.classList.remove("error");
+			const previous = link._prev;
+			canvas.toBlob(blob =>
 			{
-				const canvas = document.createElement("canvas");
-				drawImage(
-					{
-						canvas,
-						top: diamTop,
-						bottom: diamBot,
-						height: height,
-						lineWidth: 1,
-						stroke: "black",
-						background: "white",
-						fill: "transparent",
-						templateOnly: true,
-						dpi: SETTINGS.dpi
-					});
+				link.classList.remove("loading");
+				if (previous === link._prev)
+					link.classList.toggle("error", !blob);
 
-				canvas.toBlob(blob =>
-				{
-					if (!blob)
-						return;
+				if (!blob || previous !== link._prev)
+					return;
 
-					link.setAttribute("download", `cone_template_${data.$diameterTop}x${data.$diameterBot}x${data.$height}_(${SETTINGS.dpi}dpi).png`);
-					changeDpiBlob(blob, SETTINGS.dpi).then(_blob => link.href = URL.createObjectURL(_blob)).catch(console.error);
-				});
+				link.setAttribute("download", `cone_template_${data.$diameterTop}x${data.$diameterBot}x${data.$height}_(${SETTINGS.dpi}dpi).png`);
+				link.href = URL.createObjectURL(blob);
+				//do we really need this?
+				// changeDpiBlob(blob, SETTINGS.dpi).then(_blob => link.href = URL.createObjectURL(_blob)).catch(console.error);
 			});
+			// });
 		})();
-		//-------------------------[ generate PNG end ]--------------------------------
+		//-------------------------[ End generate PNG ]--------------------------------
 
 		const angleDegrees = round(toDegree(data.angleRad));
 
@@ -967,17 +956,18 @@ function init ()
 		contextR2.translate(7, 0);
 		contextR2.font = computedStyle.fontWeight + " " + computedStyle.fontSize + " " + computedStyle.fontFamily;
 		contextR2.textAlign = "center";
-		const d = drawImage({canvas: elementCanvasTemplateInfo,
+		const d = drawImage({
+			canvas: elementCanvasTemplateInfo,
 			top: 1,
 			bottom: 2,
 			height: 4,
 			lineWidth,
-			stroke: color.stroke,
+			stroke: COLOR.stroke,
 			fill: "transparent"
 		});
 		contextR2.lineWidth = 0.25;
-		contextR2.strokeStyle = color.stroke;
-		contextR2.fillStyle = color.stroke;
+		contextR2.strokeStyle = COLOR.stroke;
+		contextR2.fillStyle = COLOR.stroke;
 		contextR2.globalAlpha = 1;
 
 		/* Radius Top */
@@ -1062,7 +1052,7 @@ function init ()
 		y1 = d.topArcEnds[1];
 		x2 = d.bottomArcEnds[0] + 14;
 		y2 = d.bottomArcEnds[1] - 8;
-		//        [x1, y1, x2, y2] = getParallelLine(d.topArcEnds[0], d.topArcEnds[1], d.bottomArcEnds[0], d.bottomArcEnds[1], 14);
+		//		[x1, y1, x2, y2] = getParallelLine(d.topArcEnds[0], d.topArcEnds[1], d.bottomArcEnds[0], d.bottomArcEnds[1], 14);
 
 		/** arrow Height */
 		arrow([x1, y1, x2, y2], true, true, false, [
@@ -1144,8 +1134,8 @@ function init ()
 				showError: true,
 				lineWidth: getValue("arrow-line-width", 0.35),
 				alpha: 1,
-				color: getValue("arrow-color", color.stroke),
-				colorError: getValue("arrow-color-error", color.error),
+				color: getValue("arrow-color", COLOR.stroke),
+				colorError: getValue("arrow-color-error", COLOR.error),
 			}, options || {}
 		);
 		const fillText = (element, posBox, distribution, nopos) =>
@@ -1154,7 +1144,9 @@ function init ()
 			const contextGlobalAlpha = context.globalAlpha;
 			const computedStyle = window.getComputedStyle(elementCanvasTemplateInfo);
 
-			const text = element.querySelector(":scope > span" + (SETTINGS.fractions || element.id === "angle" ? "" : ":nth-of-type(2)")).textContent.replaceAll(/[()]/g,"");
+			const text = element.querySelector(":scope > span" + (SETTINGS.fractions || element.id === "angle" ? "" : ":nth-of-type(2)")).textContent
+				.replace(/[()]/g, "")
+				.replace(/ +/g, " ");
 			let text2 = element.querySelector("label > label").textContent;
 
 			context.globalAlpha = 1;
@@ -1191,7 +1183,7 @@ function init ()
 				0
 			);
 			context.restore();
-			context.fillStyle = color.label;
+			context.fillStyle = COLOR.label;
 			context.font = computedStyle.fontWeight + " " + fontSize + " " + computedStyle.fontFamily;
 			context.textAlign = "end";
 			if (!nopos && !isnan) context.textBaseline = "bottom";
@@ -1212,7 +1204,7 @@ function init ()
 			context.globalAlpha = options.alpha * (options.fill && alpha ? alpha : 1);
 			context.strokeStyle = error && options.showError ? options.colorError : colorBrightness(options.color, adjust);
 			context.fillStyle = error && options.showError ? options.colorError : colorBrightness(options.color, adjust);
-			console.trace(context.globalAlpha, alpha, Object.assign({}, options));
+			// console.trace(context.globalAlpha, alpha, Object.assign({}, options));
 			if (options.fill)
 				context.fill();
 
@@ -1286,8 +1278,8 @@ function init ()
 
 	function showAsFraction (f)
 	{
-		if (f !== undefined)
-			SETTINGS.fractions = f;
+		// if (f !== undefined)
+		// 	SETTINGS.fractions = f;
 
 		f = SETTINGS.fractions;
 		elementMenuFraction.value = f;
@@ -1303,25 +1295,25 @@ function init ()
 		const list = SETTINGS.$valid[element.dataset.setting] || [];
 		const names = SETTINGS.$names[element.dataset.setting] || [];
 		let placeholder;
-		for (let index = 0, value = 1, max = 0, o; index < list.length; index++)
+		for (let i = 0, value = 1, max = 0, o; i < list.length; i++)
 		{
-			o = elementUl.children[index] || elementOption.cloneNode(true);
+			o = elementUl.children[i] || elementOption.cloneNode(true);
 			if (element.dataset.setting === "precision")
 			{
-				value = index ? value * 2 : index+1;
-				o.textContent = index ? "1⁄" + value : "Round";
+				value = i ? value * 2 : i + 1;
+				o.textContent = i ? "1⁄" + value : "Round";
 			}
 			else
 			{
-				value = list[index];
-				o.textContent = names[index] || value;
+				value = list[i];
+				o.textContent = names[i] || value;
 			}
 			o.value = value;
 			const selected = SETTINGS[setting] === value;
 			o.classList.toggle("default", value === SETTINGS.$value[setting]);
 			o.classList.add("option");
 			o.classList.toggle("selected", selected);
-			if (!elementUl.children[index])
+			if (!elementUl.children[i])
 			{
 				elementUl.append(o);
 			}
@@ -1341,22 +1333,22 @@ function init ()
 		if (element._inited)
 			return;
 
-		(element.classList.contains("dropdown-box") ? element : element.querySelector(".dropdown-box")).addEventListener("click", event_ =>
+		(element.classList.contains("dropdown-box") ? element : element.querySelector(".dropdown-box")).addEventListener("click", evt =>
 		{
-			if (event_.target.tagName !== "LABEL")
-				popup(element.querySelector("input[type=\"checkbox\"]"), event_.target.classList.contains("option"));
+			if (evt.target.tagName !== "LABEL")
+				setPopup(element.querySelector("input[type=\"checkbox\"]"), evt.target.classList.contains("option"));
 
-			if (!event_.target.classList.contains("option"))
+			if (!evt.target.classList.contains("option"))
 				return;
 
-			SETTINGS[setting] = event_.target.value;
+			SETTINGS[setting] = evt.target.value;
 			dropdown(element);
-//      closeMenu(setting);
+			//	  closeMenu(setting);
 			// if (SETTINGS.onChange[setting] instanceof Function)
-			// 	SETTINGS.onChange[setting](event_.target.value);
+			// 	SETTINGS.onChange[setting](evt.target.value);
 
 			draw(true);
-			event_.preventDefault();
+			evt.preventDefault();
 		});
 		element._inited = true;
 	}
@@ -1384,55 +1376,52 @@ function init ()
 		return hexColor;
 	}
 
-	function showValue (element, ...arguments_)
+	function showValue (element, ...args)
 	{
 		const children = element.querySelectorAll(":scope > span"); //direct children only
 
 		element.classList.remove("na");
 
-		if (arguments_.at(-1) !== false)
-			element.value = arguments_[0];
+		const argsLast = args.at(-1);
+		if (argsLast !== false)
+			element.value = args[0];
 
-		for (let index = 0, na; index < arguments_.length; index++)
+		for (let i = 0, na; i < args.length; i++)
 		{
-			if (!children[index]) continue;
+			if (!children[i]) continue;
 
-			const ff = fractionFormat(fractionLimit(arguments_[index], SETTINGS.precision), arguments_[index]);
-			const value = index || arguments_.at(-1) === false ? arguments_[index] : ff[0];
+			const _value = typeof args[i] === "number" ? args[i] : args[i].replace(/[^\d./-]/g, "");
+			// console.log(_value, Number.isFinite(_value));
+			const ff = Number.isFinite(_value)
+				? fractionFormat(fractionLimit(_value, SETTINGS.precision), args[i])
+				: [Number.NaN, Number.NaN, Number.NaN, Number.NaN, Number.NaN];
+			const value = i || argsLast === false ? [args[i]] : ff[0];
+			console.log("showValue", { value, ff });
 			na = isNan(value);
 			if (na)
 				element.classList.add("na");
 
-			if (!index && ff[1] !== ff[2])
+			if (!i)
 			{
-				element.dataset.up = ff[1] > ff[2];
+				if (ff[3] === ff[4] || isNan(ff[3]) || isNan(ff[4]))
+					delete element.dataset.up;
+				else
+					element.dataset.up = ff[3] < ff[4];
 			}
-			children[index].classList.toggle("na", na);
-			children[index].textContent = index ? "(" + showNan(value) + ")" : showNan(value);
+
+			children[i].classList.toggle("na", na);
+			children[i].innerHTML = i ? "(" + showNan(value) + ")" : showNan(value);
 		}
 	}
 
 	function inputWidth (element)
 	{
-		for (let index = 0, style = getComputedStyle(element); index < style.length; index++)
-			elementHidden.style[style[index]] = /color/i.test(style[index]) ? "transparent" : style[style[index]];
+		for (let i = 0, style = getComputedStyle(element); i < style.length; i++)
+			elementHidden.style[style[i]] = /color/i.test(style[i]) ? "transparent" : style[style[i]];
 
 		elementHidden.style.padding = "0.5em";
 		elementHidden.textContent = element.value;
 		element.style.width = elementHidden.getBoundingClientRect().width + "px";
-	}
-
-	function filter (t)
-	{
-		return t
-			.replace(fractionFilter, item => " " + fractions[item])
-			.replaceAll(/[^\d ,./\\-]/g, "")
-			.replaceAll("-", " ")
-			.replaceAll("\\", "/")
-			.replaceAll(/(\d+),(\d+\.\d+)/g, "$1$2")
-			.replaceAll(",", ".")
-			.replaceAll(/([\s./])\1+/g, "$1")
-			.trim();
 	}
 
 	function fractionLimit (number_, denominator)
@@ -1442,6 +1431,7 @@ function init ()
 
 		if (denominator > 0)
 			return new Fraction(Math.round(new Fraction(number_) * denominator), denominator).toFraction(true);
+
 		return new Fraction(Math.floor(new Fraction(number_)), 1).toFraction(true);
 	}
 
@@ -1450,24 +1440,22 @@ function init ()
 		const roundN = round(n);
 		const returnValue = [n, roundN === Number.POSITIVE_INFINITY ? 0 : roundN, Number.parseFloat(new Fraction(fraction).toString())];
 		returnValue[0] = fraction.replace(/^(\d+)\/(\d+)|(\d+)(\s+(\d+)\/(\d+))|(\d+)/,
-			(...arguments_) =>
+			(...args) =>
 			{
-				let r = arguments_[3] || arguments_[7] || "";
-				// if (args[1] || args[5])
-				// {
-				const round1 = round((arguments_[1] || arguments_[5]) / (arguments_[2] || arguments_[6]) || 0);
+				const result = [args[3] || args[7] || ""];
+				const round1 = round((args[1] || args[5]) / (args[2] || args[6]) || 0);
 				const round2 = round(n % 1);
-				console.log(n, round1, round2, (arguments_[1] || arguments_[5] || 0), (arguments_[2] || arguments_[6] || 0));
-								// r += (r !== "" ? " "
-				//  r += (r !== "" ? (round1 == round2 ? " " : "~")
-				r += (r === "" ? ""
-					: (round1 === round2 ? " " : round1 > round2 ? "▿" : "▵"))
-					+ ((arguments_[1] || arguments_[5]) ? `${arguments_[1] || arguments_[5]}⁄${arguments_[2] || arguments_[6]}` : "");
-				// }
-				// r += (r !== "" ? " " : "") + `<sup>${args[1] || args[5]}</sup>&frasl;<sub>${args[2] || args[6]}</sub>`;
-				return r;
+				returnValue.push(round1, round2);
+				// console.log(returnValue, round1, round2);
+				if (result[0] !== "")
+					result.push(round1 === round2 ? " " : (round1 > round2 ? "▿" : "▵"));
+
+				const fResult = (args[1] || args[5]) ? `${args[1] || args[5]}⁄${args[2] || args[6]}` : "";
+				result.push(fResult);
+				return result.map(i => "<span>" + i + "</span>").join("");
 			}
 		);
+		// console.log(returnValue);
 		return returnValue;
 	}
 
@@ -1494,32 +1482,6 @@ function init ()
 		document.documentElement.style.setProperty("--text-color", getComputedStyle(document.documentElement).color);
 	}
 
-	function onTextInput (event_)
-	{
-		if (event_.timeStamp - onTextInput.timeStamp < 10)
-			return;
-
-		onTextInput.timeStamp = event_.timeStamp;
-
-		const char = event_.key || event_.data;
-		if (char === "Enter")
-			return event_.target[(event_.shiftKey ? "previous" : "next") + "ElementSibling"].focus();
-
-		if ((char === "-" && filter(event_.target.value.slice(0, Math.max(0, event_.target.selectionStart)) + char))
-				|| (char && !new RegExp("[^\\d\\/., " + fractionGlyphs + "]").test(char)))
-		{
-			return true;
-		}
-
-		if (event_.type === "keydown" && (event_.ctrlKey || (char.length > 1 && char !== "Processing")))
-			return true;
-
-		event_.preventDefault();
-		event_.stopPropagation();
-		event_.stopImmediatePropagation();
-		return false;
-	}
-
 	function onBlur ()
 	{
 		setTimeout(() =>
@@ -1534,9 +1496,9 @@ function init ()
 		});
 	}
 
-	function onFocus (event_)
+	function onFocus (evt)
 	{
-		highlighted = event_.target;
+		highlighted = evt.target;
 		highlighted.selectionStart = highlighted.value.length;
 		draw();
 		previousFocus = highlighted;
@@ -1554,28 +1516,29 @@ function init ()
 			});
 	}
 
-	function onMouseMove (event_)
+	function onMouseMove (evt)
 	{
-		currentX = event_.offsetX;
-		currentY = event_.offsetY;
+		currentX = evt.offsetX;
+		currentY = evt.offsetY;
 
-		const highlightHoverNew =
-			contextDiamTop && contextCone.isPointInPath(contextDiamTop, currentX, currentY)
-				? 1
-				: contextDiamBot && contextCone.isPointInPath(contextDiamBot, currentX, currentY)
-					? 2
-					: (contextHeight && contextCone.isPointInPath(contextHeight, currentX, currentY)
-						? 3
-						: 0);
-		if (highlightHoverNew !== highlightHover) highlightHover = highlightHoverNew;
+		let highlightHoverNew = 0;
+		if (contextDiamTop && contextCone.isPointInPath(contextDiamTop, currentX, currentY))
+			highlightHoverNew = 1;
+		else if (contextDiamBot && contextCone.isPointInPath(contextDiamBot, currentX, currentY))
+			highlightHoverNew = 2;
+		else if (contextHeight && contextCone.isPointInPath(contextHeight, currentX, currentY))
+			highlightHoverNew = 3;
+
+		if (highlightHoverNew !== highlightHover)
+			highlightHover = highlightHoverNew;
 
 		draw();
 	}
 
-	function onClick (event_)
+	function onClick (evt)
 	{
-		currentX = event_.offsetX;
-		currentY = event_.offsetY;
+		currentX = evt.offsetX;
+		currentY = evt.offsetY;
 
 		let element;
 		if (contextCone.isPointInPath(contextDiamTop, currentX, currentY))
@@ -1594,16 +1557,16 @@ function init ()
 			return;
 
 		if (element)
-			event_.preventDefault();
+			evt.preventDefault();
 
 		highlightHover = 0;
 		highlighted.focus();
-		if (event_.type === "dblclick") // && highlightedPrev === highlighted)
+		if (evt.type === "dblclick") // && highlightedPrev === highlighted)
 			highlighted.select();
 
 	}
 
-	function popup (p, close)
+	function setPopup (p, close)
 	{
 		if (!document.body.popups)
 			document.body.popups = [];
@@ -1611,7 +1574,7 @@ function init ()
 		if (!p)
 		{
 			while ((p = document.body.popups.at(-1)))
-				popup(p, true);
+				setPopup(p, true);
 		}
 
 		if (!p)
@@ -1630,7 +1593,7 @@ function init ()
 			document.body.popups.splice(index, 1);
 
 		if (document.body.popups.length > 0)
-			document.body.dataset.popup = document.body.popups.at(-1).dataset.popup;
+			document.body.dataset.popup = document.body.popups.at(-1).id;
 		else
 			delete document.body.dataset.popup;
 
@@ -1648,34 +1611,35 @@ function init ()
 		element.addEventListener("beforeinput", onTextInput); //mobile
 		element.addEventListener("textInput", onTextInput); //mobile
 	};
-	const nlInput = document.querySelectorAll(".input input");
-	for(let index = 0; index < nlInput.length; index++)
-		addEventListeners(nlInput[index]);
 
-	window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", event_ =>
+	const nlInput = document.querySelectorAll(".input input");
+	for (let i = 0; i < nlInput.length; i++)
+		addEventListeners(nlInput[i]);
+
+	window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", evt =>
 	{
 		if (SETTINGS.theme !== 2) return;
 
-		color.theme = event_.matches;
+		COLOR.theme = evt.matches;
 		setTheme();
 		draw(true);
 	});
 
-	elementNavbar.addEventListener("click", event_ =>
+	elementNavbar.addEventListener("click", evt =>
 	{
 		// let clicked = false;
 
-		if (event_.target.dataset.popup)
-			popup(event_.target);
+		if (evt.target.dataset.popup)
+			setPopup(evt.target);
 
-		switch (event_.target.dataset.type)
+		switch (evt.target.dataset.type)
 		{
 			case "reset": {
-				popup();
+				setPopup();
 				SETTINGS.$reset();
 				init();
-			// clicked = true;
-				event_.preventDefault();
+				// clicked = true;
+				evt.preventDefault();
 				// setTimeout(SETTINGS.$reset);
 				break;
 			}
@@ -1685,9 +1649,10 @@ function init ()
 				if (++fraction > 1)
 					fraction = 0;
 
-				showAsFraction(fraction);
+				SETTINGS.fractions = fraction;
+				// showAsFraction(fraction);
 				draw(true);
-			// clicked = true;
+				// clicked = true;
 				break;
 			}
 		}
@@ -1697,21 +1662,21 @@ function init ()
 		// 	clicked = true;
 		// }
 		// if (clicked)
-		//   e.preventDefault();
+		// e.preventDefault();
 	}, true);
 
-	elementCanvasTemplateInfo.addEventListener("click", event_ =>
+	elementCanvasTemplateInfo.addEventListener("click", evt =>
 	{
-		const f = SETTINGS.fractions;
+		// const f = SETTINGS.fractions;
 		SETTINGS.fractions = Math.trunc(!Math.trunc(elementCanvasTemplateInfo.dataset.type));
 		draw(true);
-		SETTINGS.fractions = f;
-		event_.preventDefault();
+		// SETTINGS.fractions = f;
+		evt.preventDefault();
 	});
 
-	elementCanvasTemplateInfo.addEventListener("dblclick", event_ =>
+	elementCanvasTemplateInfo.addEventListener("dblclick", evt =>
 	{
-		event_.preventDefault();
+		evt.preventDefault();
 	});
 
 	function initDropdowns ()
@@ -1726,9 +1691,9 @@ function init ()
 				dropdownBox.className = "dropdown-box";
 				dropdownBox.innerHTML = `
 <div class="dropdown">
-	<input id="${elementDropdown.dataset.setting}-dropdown" type="checkbox">
-	<label for="${elementDropdown.dataset.setting}-dropdown" class="close-overlay" title="" data-type="${elementDropdown.dataset.setting}"></label>
-	<label for="${elementDropdown.dataset.setting}-dropdown" class="dropdown-list"><ul></ul></label>
+<input id="${elementDropdown.dataset.setting}Dropdown" type="checkbox">
+<label for="${elementDropdown.dataset.setting}Dropdown" class="close-overlay" title="" data-type="${elementDropdown.dataset.setting}"></label>
+<label for="${elementDropdown.dataset.setting}Dropdown" class="dropdown-list"><ul></ul></label>
 </div>`;
 				elementDropdown.append(dropdownBox);
 			}
@@ -1737,7 +1702,79 @@ function init ()
 	}
 	document.documentElement.removeAttribute("notInited");
 	initialized = true;
+}//init()
+
+const fractions = (() =>
+{
+	const list = {
+		"½": "1/2",
+		"⅓": "1/3",
+		"¼": "1/4",
+		"⅕": "1/5",
+		"⅙": "1/6",
+		"⅐": "1/7",
+		"⅛": "1/8",
+		"⅑": "1/9",
+		"⅒": "1/10",
+		"⅔": "2/3",
+		"⅖": "2/5",
+		"¾": "3/4",
+		"⅗": "3/5",
+		"⅜": "3/8",
+		"⅘": "4/5",
+		"⅚": "5/6",
+		"⅝": "5/8",
+		"⅞": "7/8",
+	};
+	for (const key in list)
+		list[list[key]] = key;
+
+	return list;
+})();
+const fractionGlyphs = Object.keys(fractions).filter(a => a.length < 2).join("");
+const fractionFilter = new RegExp("[" + fractionGlyphs + "]", "g");
+
+function filter (t)
+{
+	return t
+		.replace(fractionFilter, item => " " + fractions[item])
+		.replace(/[^\d ,./\\-]/g, "")
+		.replace(/-+/g, " ")
+		.replace(/\\/g, "/")
+		.replace(/(\d+),(\d+\.\d+)/g, "$1$2")
+		.replace(/,/, ".")
+		.replace(/([\s./])\1+/g, "$1")
+		.replace(/\D+$/g, "")
+		.replace(/\d (?!\d+\/\d+).*/g, "")
+		.trim();
 }
+
+function onTextInput (evt)
+{
+	if (evt.timeStamp - onTextInput.timeStamp < 10)
+		return;
+
+	onTextInput.timeStamp = evt.timeStamp;
+
+	const char = evt.key || evt.data;
+	if (char === "Enter")
+		return evt.target[(evt.shiftKey ? "previous" : "next") + "ElementSibling"].focus();
+
+	if ((char === "-" && filter(evt.target.value.slice(0, Math.max(0, evt.target.selectionStart)) + char))
+		|| (char && !new RegExp("[^\\d\\/., " + fractionGlyphs + "]").test(char)))
+	{
+		return true;
+	}
+
+	if (evt.type === "keydown" && (evt.ctrlKey || (char.length > 1 && char !== "Processing")))
+		return true;
+
+	evt.preventDefault();
+	evt.stopPropagation();
+	evt.stopImmediatePropagation();
+	return false;
+}
+
 function showNan (t)
 {
 
@@ -1798,6 +1835,32 @@ function round (n, d)
 	d = Math.pow(10, d || 2);
 	d = Math.round(n * d) / d;
 	return d;
+}
+
+const EL = new Proxy(id => document.getElementById(id), {
+	get: (target, name) => target(name)
+});
+
+const TypedArray = Reflect.getPrototypeOf(Int8Array);
+for (const C of [Array, String, TypedArray])
+{
+	Object.defineProperty(C.prototype, "at",
+		{
+			value: function at (n)
+			{
+				// ToInteger() abstract op
+				n = Math.trunc(n) || 0;
+				// Allow negative indexing from the end
+				if (n < 0) n += this.length;
+				// OOB access is guaranteed to return undefined
+				if (n < 0 || n >= this.length) return;
+				// Otherwise, this is just normal property access
+				return this[n];
+			},
+			writable: true,
+			enumerable: false,
+			configurable: true
+		});
 }
 
 })();

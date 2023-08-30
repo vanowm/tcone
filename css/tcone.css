@@ -1,31 +1,54 @@
 :root
- {
+{
 	--size: 350px;
-	--label-color: #0268ff;      /* any */ /* light theme */
-	--label-color-dark: #67a4ff;  /* any */ /* dark theme */
-	--arrow-head-size: 8;           /* number */
-	--arrow-head-width: ;           /* number */
-	--arrow-head-closed: false;     /* true/false */
-	--arrow-line-width: ;           /* number */
-	--arrow-fill: true;            /* true/false */
-	--arrow-color: ;               /* any */
-	--arrow-color-error: ;          /* any */
+	--label-color: #0268ff; /* any *//* light theme */
+	--label-color-dark: #67a4ff; /* any *//* dark theme */
+	--arrow-head-size: 8; /* number */
+	--arrow-head-width: ; /* number */
+	--arrow-head-closed: false; /* true/false */
+	--arrow-line-width: ; /* number */
+	--arrow-fill: true; /* true/false */
+	--arrow-color: ; /* any */
+	--arrow-color-error: ; /* any */
 	--text-color: CanvasText;
 	--background-color: Canvas;
 	--input-font-size: 1.5em;
+	--item-selected: #efefef;
+	--menu-item-background-color-dark: #1f1f1f;
 
-	color-scheme: normal dark;
-
+	color-scheme: light dark;
 	/* background-color: green; */
 	font-family: "Segoe UI", Arial, Tahoma, Geneva, Verdana, sans-serif;
 }
 
 @media (prefers-color-scheme: dark)
- {
+{
 	:root:not([theme="light"])
- {
-	 --label-color: var(--label-color-dark);
- }
+	{
+		--label-color: var(--label-color-dark);
+		--item-selected: var(--menu-item-background-color-dark);
+	}
+}
+
+:root[theme="dark"]
+{
+	color-scheme: dark;
+
+	--label-color: var(--label-color-dark);
+	--item-selected: var(--menu-item-background-color-dark);
+}
+
+:root[theme="light"]
+{
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark)
+{
+	fieldset
+	{
+		background-color: darkslategray;
+	}
 }
 
 *
@@ -37,20 +60,20 @@
 }
 
 .download > *
- {
+{
 	text-decoration: none;
 	vertical-align: bottom;
 	margin-left: 0.2em;
 }
 
 .menu > *
- {
+{
 	padding: 0.5em 1.5em;
 	display: block;
 }
 
 .container > *:not(canvas)
- {
+{
 	position: absolute;
 	vertical-align: middle;
 	text-align: center;
@@ -58,21 +81,56 @@
 	box-sizing: border-box;
 }
 
+body[data-popup] > *:not(header)
+{
+	filter: blur(2px);
+	/* border: 0; */
+}
+
+
 .result label > span
- {
+{
 	float: left;
 	margin-right: 0.5em;
 }
 
+.download > *:not([href],.loading,.error)
+{
+	display: none;
+}
+
+/* .loading
+{
+	perspective: 1em;
+} */
+
+.loading::after
+{
+	/* perspective: 1em; */
+	animation: rotate-animation 1s linear infinite;
+}
+
+@keyframes rotate-animation
+{
+	to
+	{
+		transform: rotateY(360deg);
+	}
+}
+
 .download > *:not([href]),
 .result > .table span.na
- {
-	font-weight: normal;
-	font-style: italic;
-	font-size: 0.8em;
+{
 	opacity: 0.2;
 	cursor: default;
 	/* display: none; */
+}
+
+.result > .table span.na
+{
+	font-weight: normal;
+	font-style: italic;
+	font-size: 0.8em;
 }
 
 label.toggle > .options > *
@@ -95,47 +153,28 @@ label.toggle .options > *
 	-ms-user-select: text;
 	user-select: text;
 	line-height: 1.3em;
-}
-
-:root[theme="dark"]
- {
-	color-scheme: dark;
-	
-	--label-color: var(--label-color-dark);
-}
-
-:root[theme="light"]
- {
-	color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark)
- {
-	fieldset
- {
-	background-color: darkslategray;
-	}
+	white-space: pre;
 }
 
 body
- {
+{
 	opacity: 1;
 	transition: opacity 0.1s;
 }
 
 :root[notInited] > body
- {
+{
 	opacity: 0;
 }
 
 .content
- {
+{
 	display: flex;
 	flex-wrap: wrap;
 }
 
 .container
- {
+{
 	min-width: var(--size);
 	height: var(--size);
 	display: inline-block;
@@ -159,8 +198,7 @@ nav > input
 	display: none;
 }
 
-input:not([style])
-/* prevent flickering on refresh */
+input:not([style]) /* prevent flickering on refresh */
 {
 	top: -99999vh;
 }
@@ -172,28 +210,28 @@ input:focus
 }
 
 .dropdown input
- {
+{
 	display: none;
 }
 
 body:not([data-popup]) input
- {
+{
 	z-index: 1;
 	/* border: 0; */
 }
 
 .table
- {
+{
 	display: table;
 }
 
 .result .table > div
- {
+{
 	display: table-row;
 }
 
 .result .table > div > span
- {
+{
 	display: table-cell;
 	padding-left: 0.5em;
 	font-weight: bold;
@@ -201,13 +239,13 @@ body:not([data-popup]) input
 }
 
 canvas
- {
+{
 	width: var(--size);
 	height: var(--size);
 }
 
-.error
- {
+:not(.download) > .error
+{
 	color: red;
 	border-color: red;
 	outline-color: red;
@@ -215,46 +253,46 @@ canvas
 }
 
 .result div[id]
- {
+{
 	padding-left: 0.5em;
 }
 
-.result .table > div > span:first-of-type::before
+/* .result .table > div > span:first-of-type > span:first-of-type::after
  {
 	content: "";
 	display: inline-block;
 	width: 0.8em;
-	margin-left: -0.5em;
+	margin-left: -0.3em;
 }
-	/* .result .table > div[data-up] > span:first-of-type::before {
+
+.result .table > div[data-up] > span:first-of-type > span:first-of-type::after
+{
 	content: "▿";
 }
 
-.result .table > div[data-up="true"] > span:first-of-type::before {
+.result .table > div[data-up="true"] > span:first-of-type > span:first-of-type::after
+{
 	content: "▵";
 } */
-
 .result .table > div > span:last-child
- {
+{
 	font-weight: normal;
 	/* text-align: end; */
 }
-
 
 /* .result > div > span:first-child
 {
 	text-align: end;
 } */
-
 .result sup,
 .result sub
- {
+{
 	font-size: 0.6em;
 }
 
 .hidden,
 #hidden
- {
+{
 	width: min-content !important;
 	box-sizing: border-box !important;
 	display: inline-block !important;
@@ -272,15 +310,13 @@ nav
 {
 	text-decoration: none;
 } */
-
-
 .result .table
- {
+{
 	text-align: end;
 }
 
 .result label > label
- {
+{
 	color: var(--label-color);
 }
 
@@ -290,7 +326,7 @@ nav
 }
 
 .dropdown-box
- {
+{
 	/* position: absolute; */
 	/* z-index: 1; */
 	/* left: 0; */
@@ -299,7 +335,7 @@ nav
 }
 
 .dropdown-list .option
- {
+{
 	padding: 0.3em;
 	display: flex;
 	white-space: nowrap;
@@ -313,7 +349,7 @@ nav
 }
 
 .dropdown
- {
+{
 	/* position: relative; */
 	/* top: 0.2em; */
 	/* width: 100%; */
@@ -323,7 +359,7 @@ nav
 }
 
 .dropdown-list
- {
+{
 	position: relative;
 	border: 1px solid #7f7f7f7f;
 	margin: 0;
@@ -344,7 +380,6 @@ nav
 /* .dropdown-list {
 	padding: 0 0.3em;
 } */
-
 /* .dropdown input[type="checkbox"]:checked ~ label
 {
 	z-index: 3;
@@ -352,7 +387,7 @@ nav
 } */
 
 .close-overlay
- {
+{
 	top: 0;
 	left: 0;
 	width: 100%;
@@ -364,17 +399,21 @@ nav
 	/* background-color: blue; */
 }
 
+nav > .close-overlay
+{
+	background-color: #0000007f;
+}
+
 /* nav > .close-overlay {
 	backdrop-filter: brightness(0.5);
 } */
-
 .close-overlay ~ * .close-overlay
 {
 	z-index: 1;
 }
 
 .dropdown-list::after
- {
+{
 	content: "";
 	position: absolute;
 	right: 0.2em;
@@ -389,7 +428,7 @@ nav
 }
 
 .dropdown-list > ul
- {
+{
 	height: 0;
 	display: block;
 	line-height: 1.4em;
@@ -410,26 +449,26 @@ nav
 }
 
 .dropdown input[type="checkbox"]:checked ~ .dropdown-list > ul
- {
+{
 	border: 1px solid #7f7f7f7f;
 	height: max-content;
 	z-index: 2;
 }
 
 .dropdown input[type="checkbox"]:checked ~ .dropdown-list
- {
+{
 	z-index: 2;
 }
 
 .dropdown input[type="checkbox"]:checked ~ .dropdown-list::after
- {
+{
 	transform: rotate(-180deg);
 	top: 0.2em;
 }
 
 .dropdown[data-placeholder]::before,
 .dropdown-list::before
- {
+{
 	content: attr(data-value);
 	display: block;
 	padding: 0 1.5em 0 0.5em;
@@ -438,7 +477,7 @@ nav
 }
 
 .dropdown[data-placeholder]::before
- {
+{
 	content: attr(data-placeholder);
 	height: 0;
 	padding: 0 1.5em;
@@ -452,10 +491,11 @@ nav
 	font-weight: bold;
 	text-shadow: 0 0 2px #7f7f7f7f;
 	border: 0.5px dotted #7f7f7f5f;
+	background-color: var(--item-selected);
 }
 
 .dropdown-list .option.default::after
- {
+{
 	content: "(Default)";
 	font-style: italic;
 	font-size: 0.5em;
@@ -470,12 +510,12 @@ nav
 }
 
 .dropdown input[type="checkbox"]:not(:checked) ~ .dropdown-list .option
- {
+{
 	display: none;
 }
 
 .dropdown input[type="checkbox"]:checked ~ .dropdown-list .option:hover
- {
+{
 	background-color: #7f7f7f80;
 	/* color: black; */
 }
@@ -486,12 +526,12 @@ nav > input:checked ~ .close-overlay
 }
 
 .dropdown input[type="checkbox"]:checked ~ .close-overlay
- {
+{
 	display: block;
 }
 
 #coneTemplateInfo
- {
+{
 	--width: 340px;
 	--height: 390px;
 
@@ -500,18 +540,23 @@ nav > input:checked ~ .close-overlay
 }
 
 .download
- {
+{
 	margin: 0.5em 0;
 }
 
 .download > *::after
- {
-	height: 32px;
-	width: 24px;
+{
+	/* height: 2em; */
+	width: 1.5em;
 	display: inline-block;
-	margin: 0;
-	padding: 0;
-	vertical-align: bottom;
+	/* margin: 0; */
+	/* padding: 0; */
+	/* vertical-align: bottom; */
+}
+
+.download > *:not(.loading)::after
+{
+	animation: rotate-animation 0.4s linear;
 }
 
 .download > *[href]
@@ -524,19 +569,24 @@ nav > input:checked ~ .close-overlay
 	opacity: 1;
 }
 
-.download>#dxf::after
- {
+.download > #dxf::after
+{
 	content: url("images/dxf_white_505050_007F00_black.svg");
 }
 
-.download>#pdf::after
- {
+.download > #pdf::after
+{
 	content: url("images/pdf_white_505050_ff0000_black.svg");
 }
 
-.download>#png::after
- {
+.download > #png::after
+{
 	content: url("images/png_white_505050_007fff_black.svg");
+}
+
+.download > #png.error::after
+{
+	content: url("images/png_pink_505050_007fff_black.svg");
 }
 
 .menu
@@ -556,23 +606,24 @@ nav > input:checked ~ .close-overlay
 	border-radius: 5px;
 }
 
-:root[theme="dark"] .menu
+/* :root[theme="dark"] .menu
 {
 	box-shadow: none;
-}
+} */
 
-@media (prefers-color-scheme: dark)
- {
+/* @media (prefers-color-scheme: dark)
+{
 	:root:not([theme]) .menu
- {
-	 box-shadow: none;
- }
-}
+	{
+		box-shadow: none;
+	}
+} */
 
 .menu > [data-type]:not([data-type="dropdown"])
 {
 	cursor: pointer;
 }
+
 /* .close-overlay
 {
 	background-color: blue;;
@@ -587,7 +638,7 @@ nav > input:checked ~ .close-overlay
 }
 
 .menu > .value:hover
- {
+{
 	background-color: #7f7f7f80;
 }
 
@@ -598,9 +649,8 @@ nav > input:not(:checked) ~ div.menu
 	transition: top 0.3s cubic-bezier(0.6, -0.28, 0.74, 0.05);
 }
 
-
 .menu-icon
- {
+{
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -619,7 +669,7 @@ nav > input:not(:checked) ~ div.menu
 }
 
 .nav-icon
- {
+{
 	background-color: var(--text-color);
 	display: block;
 	height: 0.1em;
@@ -632,12 +682,12 @@ nav > input:not(:checked) ~ div.menu
 }
 
 .nav-icon::before
- {
+{
 	top: 0.5em;
 }
 
 .nav-icon::after
- {
+{
 	top: -0.5em;
 }
 
@@ -654,8 +704,9 @@ nav > input:not(:checked) ~ div.menu
 	transition: top 0.1s ease, right 0.1s ease;
 }
 
-.nav-icon::before, .nav-icon::after
- {
+.nav-icon::before,
+.nav-icon::after
+{
 	background-color: var(--text-color);
 	display: block;
 	width: 100%;
@@ -721,6 +772,6 @@ label.toggle[value="5"] .options > :nth-child(6)
 {
 	[data-setting="d"]
 	{
-	display: none;
+		display: none;
 	}
 }
